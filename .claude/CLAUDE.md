@@ -48,10 +48,10 @@ it, then show the result.
 
 ## 1. The operating loop (every request)
 
-1. **Read state** — the master `_index.md` (repo map) is auto-imported into this manual, so you
-   already have it. Skim `_installed.md`, `downloads/_catalog.md`, and the routing table §5; open the
-   specific `docs/` / `wikis/` page the map points to only when the task needs it. (Read this whole
-   manual at session start.)
+1. **Read state** — the master `_index.md` (repo map) and `_installed.md` (installed tools) are
+   auto-imported into this manual, so you already have both. Check `downloads/_catalog.md` and the
+   routing table §5; open the specific `docs/` / `wikis/` page the map points to only when the task
+   needs it. (Read this whole manual at session start.)
 2. **Classify** the task: resize/ratio, bg-removal, upscale, txt2img, img2img, inpaint,
    style/character transfer, batch, training, …
 3. **Ground in research — never guess (mandatory).** Check `wikis/` for existing knowledge on this
@@ -79,9 +79,11 @@ it, then show the result.
 
 ## 2. Repository map
 
-The full path-by-path map is the **master index**, imported here so it loads at session start:
+The path map (**master index**) and the installed-tools inventory are imported here so both load at
+session start:
 
 @../_index.md
+@../_installed.md
 
 - **Master index (`_index.md`, repo root)** — one line per path + a concise description; the single
   map of the repo. **No rules live there**, only in this manual. Keep it current: update it in the
