@@ -33,6 +33,11 @@ it, then show the result.
   understanding** (style/content matching, identifying what's in it, QA-ing a result). For
   mechanical edits (resize, ratio, bg-removal, upscale, format) pass the path straight to the tool
   and never look. When you must look, prefer a downscaled copy.
+- **Token-budget aware — write compact.** Everything tracked here is re-read by future sessions, so
+  every word costs tokens forever. Write the minimum that conveys the fact: terse phrasing, no
+  boilerplate, no restating what another file (or this manual) already says. Compactness is a hard
+  requirement, not a style preference — applies to all `docs/`, `wikis/`, `_index.md`, commit
+  messages, and what you load into context.
 - The user can override any decision — but rarely will. Default to acting.
 
 **Always keep the user informed (required, not optional):**
@@ -43,8 +48,10 @@ it, then show the result.
 
 ## 1. The operating loop (every request)
 
-1. **Read state** — skim `_installed.md`, `downloads/_index.md`, `docs/_index.md`, `wikis/_index.md`,
-   `scripts/_index.md`, and the routing table in §5. (At session start, read this whole file.)
+1. **Read state** — the master `_index.md` (repo map) is auto-imported into this manual, so you
+   already have it. Skim `_installed.md`, `downloads/_catalog.md`, and the routing table §5; open the
+   specific `docs/` / `wikis/` page the map points to only when the task needs it. (Read this whole
+   manual at session start.)
 2. **Classify** the task: resize/ratio, bg-removal, upscale, txt2img, img2img, inpaint,
    style/character transfer, batch, training, …
 3. **Ground in research — never guess (mandatory).** Check `wikis/` for existing knowledge on this
@@ -57,31 +64,32 @@ it, then show the result.
    non-AI (ImageMagick) > diffusion when it fully satisfies the request; local > free cloud.
 5. **Plan & inform** — tell the user the approach + any time estimate, then install whatever's
    needed (no confirmation). Flag big downloads' size + ETA.
-6. **Execute** — pilot the tool via CLI / HTTP API / a `scripts/` script; first check `docs/<tool>` for its working commands, API shapes, and known gotchas. Write results to
-   `outputs/<YYYY-MM-DD>_<slug>/` (unless the user gave a path) with a small `manifest.json`
-   (tool, model, seed, params, input path) so a run is easy to reproduce/tweak. `outputs/` is
-   ephemeral — **promote any reusable recipe to `scripts/`/`wikis/`**. Never modify the input
-   file in place.
-7. **Persist everything learned** (mandatory — §4): new install → `_installed.md`; hard-won tool
-   how-to / gotchas → `docs/<tool>`; world knowledge & research → `wikis/<scope>/`; reusable
-   command → `scripts/`. Update the matching `_index.md` and the routing table.
+6. **Execute** — pilot the tool via CLI / HTTP API / a `scripts/` script; first check `docs/<tool>`
+   for its working commands, API shapes, and known gotchas. Write the **final result(s) to the root
+   of `outputs/`** with a descriptive name (unless the user gave a path); put any
+   **intermediate/temp files** (cutouts, masks) in `outputs/assets/`. **No `manifest.json`** —
+   `outputs/` is ephemeral; if a run's recipe is worth keeping, promote it to `scripts/` (reusable
+   command) or `docs/` (process notes). Never modify the input file in place.
+7. **Persist everything learned** (mandatory — §4): new install → `_installed.md`; downloaded asset
+   → `downloads/_catalog.md`; hard-won tool how-to / gotchas → `docs/<tool>`; world knowledge &
+   research → `wikis/<scope>/`; reusable command → `scripts/`. If you added/removed a tracked
+   file or folder, update the master `_index.md`; update the routing table §5 when a tool changes.
 8. **Commit & push** — once the work and its bookkeeping are saved, `git add -A`, commit with a
    clear message, and push. Leave the repo clean.
 
 ## 2. Repository map
 
-| Path | Purpose | Tracked? |
-|------|---------|----------|
-| `.claude/CLAUDE.md` | This operating manual — the brain. Keep it current. | yes |
-| `_installed.md` | Inventory of installed software/tools (version, size, source, **uninstall cmd**). | yes |
-| `docs/` | **How to operate OUR setup**: installed tools' CLI/API, settings, gotchas & fixes. `_index.md` lists pages. | yes |
-| `wikis/` | **World knowledge**: AI-image concepts, research, tool/model comparisons. `_index.md` lists scopes. | yes |
-| `scripts/` | Reusable, parametrized scripts; `_index.md` documents each. | yes |
-| `inputs/` | Buffer for source images the user drops in; reference by path/name (never uploaded). Ephemeral. | **no** (.gitkeep) |
-| `outputs/` | Buffer for generated results (user moves them out). Ephemeral. | **no** (.gitkeep) |
-| `downloads/` | All heavy artifacts: `models/`, `tools/`, `datasets/`, `cache/`. Asset catalog → `downloads/_index.md`. | content **no**; `_index.md` **yes** |
+The full path-by-path map is the **master index**, imported here so it loads at session start:
 
-**Read before acting:** `_installed.md`, `downloads/_index.md`, `docs/_index.md`, `wikis/_index.md`, `scripts/_index.md`.
+@../_index.md
+
+- **Master index (`_index.md`, repo root)** — one line per path + a concise description; the single
+  map of the repo. **No rules live there**, only in this manual. Keep it current: update it in the
+  same change whenever you add or remove a tracked file/folder.
+- **Tracked:** this manual, `_index.md`, `_installed.md`, `downloads/_catalog.md`, and everything in
+  `docs/`, `wikis/`, `scripts/`.
+- **Git-ignored** (heavy / ephemeral; folder skeletons kept via `.gitkeep`): all of `inputs/`,
+  `outputs/`, and `downloads/` **content**.
 
 ## 3. Environment (this machine — don't re-discover it)
 
@@ -108,15 +116,16 @@ learn** after — every session must leave the repo smarter. Where each kind of 
 | World knowledge — concepts, research findings, tool/model comparisons | `wikis/<scope>/` |
 | Reusable automation (a command worth re-running) | `scripts/` |
 | Installed software/tools (inventory + uninstall) | `_installed.md` |
-| Downloaded models / datasets | `downloads/_index.md` |
+| Downloaded models / datasets | `downloads/_catalog.md` |
 
 **Save only what's worth saving.** Document the things that cost trial-and-error — exact flags, API
 shapes, env vars, version quirks, workarounds. **Don't** record trivia any shell user knows (e.g.
 copying a file with `cp`) or what `--help` already prints. Rule of thumb: *if it took back-and-forth
 to get working, write it down; otherwise skip it.*
 
-Always add/update the matching `_index.md` when you record knowledge. **Before downloading any
-model, check `downloads/_index.md` first — never re-fetch what's already there.**
+When you add or remove a tracked file/folder, update the master `_index.md` (the repo map) in the
+same change. **Before downloading any model, check `downloads/_catalog.md` first — never re-fetch
+what's already there.**
 
 **Page conventions**
 - `docs/<tool>.md` (or `docs/<tool>/README.md` if it grows): How to launch · CLI/API (working
@@ -142,5 +151,5 @@ API-driven). **`uv`** is the standard Python manager. (Both chosen for this lab.
 ## 6. Self-maintenance
 
 You may reorganize or evolve this structure whenever it improves navigability — that authority is
-yours. When you do, **update this file and the affected `_index.md`s in the same change** so the
-repo stays internally consistent and self-describing.
+yours. When you do, **update this file and the master `_index.md` in the same change** so the repo
+stays internally consistent and self-describing.

@@ -12,6 +12,7 @@ tokens).
 
 **How it works / where things live**
 - [.claude/CLAUDE.md](.claude/CLAUDE.md) — the operating manual Claude follows (read this first).
+- [_index.md](_index.md) — map of every path in the repo, one line each.
 - [_installed.md](_installed.md) — inventory of everything installed (and how to remove it).
 - [wikis/](wikis/) — knowledge base, grown on demand.
 - [scripts/](scripts/) — reusable scripts.

@@ -25,7 +25,7 @@ uv pip install --python downloads/tools/rembg/.venv \
   "llvmlite>=0.43"` in the install command (done above).
 - **Keep model downloads in-repo.** rembg fetches models to `~/.u2net` by default. Set
   `U2NET_HOME="$PWD/downloads/cache/u2net"` so they land in the (ignored) repo cache and get
-  cataloged in `downloads/_index.md`. First use of a model downloads it (isnet-anime ≈ 176 MB).
+  cataloged in `downloads/_catalog.md`. First use of a model downloads it (isnet-anime ≈ 176 MB).
 
 ## CLI (working examples)
 

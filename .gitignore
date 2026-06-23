@@ -4,15 +4,16 @@
 downloads/**
 !downloads/**/
 !downloads/**/.gitkeep
-!downloads/_index.md
+!downloads/_catalog.md
 
 # Source-image drop folder: ephemeral, never tracked — keep the folder only.
 inputs/**
 !inputs/.gitkeep
 
-# Generated results: ephemeral buffer, never tracked — keep the folder only.
+# Generated results: ephemeral buffer, never tracked — keep folder skeletons (incl. assets/) only.
 outputs/**
-!outputs/.gitkeep
+!outputs/**/
+!outputs/**/.gitkeep
 
 # Python / tooling cruft
 __pycache__/

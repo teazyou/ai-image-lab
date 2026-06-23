@@ -4,10 +4,10 @@ Software/tools this lab installs (system packages, CLIs, apps, per-tool venvs) a
 they can be understood and cleanly removed. Their heavy files live under `downloads/` and are
 git-ignored.
 
-> **Downloaded model files & datasets are cataloged in [`downloads/_index.md`](downloads/_index.md)**,
+> **Downloaded model files & datasets are cataloged in [`downloads/_catalog.md`](downloads/_catalog.md)**,
 > not here — check that before downloading anything.
 >
-> **How to *use* each tool** (CLI/API, settings, gotchas) is documented in [`docs/`](docs/_index.md).
+> **How to *use* each tool** (CLI/API, settings, gotchas) is documented in [`docs/`](docs/).
 
 **Conventions**
 - Add a row the moment you install something; include the **exact uninstall command**.

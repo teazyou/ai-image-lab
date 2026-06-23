@@ -12,7 +12,7 @@ Remove INPUT's background and composite the subject onto a solid-color canvas.
 
 Options:
   -i, --input PATH     Source image (required). Never modified in place.
-  -o, --output PATH    Output PNG. Default: outputs/<date>_<stem>_<color>-bg/<stem>_<color>-bg.png
+  -o, --output PATH    Output PNG. Default: outputs/<stem>_<color>-bg.png (cutout -> outputs/assets/)
   -c, --color COLOR    Background color (ImageMagick name or #hex). Default: black
   -m, --model NAME     rembg model. Default: auto-pick by --type
   -t, --type KIND      Subject hint when -m not given: anime | photo | person  (default: anime)
@@ -60,13 +60,13 @@ fi
 
 stem="$(basename "$INPUT")"; stem="${stem%.*}"
 colslug="$(echo "$COLOR" | tr -cd 'a-zA-Z0-9')"
+# Convention: final result -> outputs/ root; intermediates -> outputs/assets/.
 if [[ -z "$OUTPUT" ]]; then
-  day="$(date +%F)"
-  OUTDIR="$ROOT/outputs/${day}_${stem}_${colslug}-bg"
-  OUTPUT="$OUTDIR/${stem}_${colslug}-bg.png"
+  OUTPUT="$ROOT/outputs/${stem}_${colslug}-bg.png"
 fi
 mkdir -p "$(dirname "$OUTPUT")"
-CUTOUT="$(dirname "$OUTPUT")/${stem}_cutout.png"
+ASSETS="$ROOT/outputs/assets"; mkdir -p "$ASSETS"
+CUTOUT="$ASSETS/${stem}_cutout.png"
 
 echo ">> rembg ($MODEL) -> $CUTOUT"
 "$REMBG" i -m "$MODEL" "$INPUT" "$CUTOUT"
