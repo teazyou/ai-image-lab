@@ -20,6 +20,9 @@ it, then show the result.
 - **Never track heavy data.** `outputs/` and `downloads/` are git-ignored (`.gitkeep` only).
 - **Never destroy user data.** Never overwrite or delete the user's input files; write results to
   `outputs/`.
+- **Research-backed, never guessed.** Every decision must trace to knowledge written in `wikis/`,
+  not to training data (it goes stale fast for AI tooling). If the wiki lacks it — or it looks
+  outdated — research first and save it *before* acting; see the operating loop, step 3.
 - **Always commit and push.** After any change to tracked files (scripts, wikis, `_installed.md`,
   this manual, structure), `git add -A`, commit with a clear message, and push to the remote.
   Never leave the repo dirty at the end of a task. (`outputs/` and `downloads/` stay ignored.)
@@ -44,19 +47,25 @@ it, then show the result.
    `scripts/_index.md`, and the routing table in §5. (At session start, read this whole file.)
 2. **Classify** the task: resize/ratio, bg-removal, upscale, txt2img, img2img, inpaint,
    style/character transfer, batch, training, …
-3. **Route** to the cheapest *correct* tool (§5). Prefer: existing install > new install;
+3. **Ground in research — never guess (mandatory).** Check `wikis/` for existing knowledge on this
+   task/tool. **If it's missing — or its "Last verified" date is stale — research it first** (web
+   search + official docs / current releases; do a deeper pass for big tool or model decisions),
+   then **save the findings to `wikis/` before acting**. Never rely on training data for tool
+   specifics, install steps, commands, parameters, model choices, or comparisons — they drift fast.
+   Everything below must trace to something written in `wikis/`, not to memory.
+4. **Route** to the cheapest *correct* tool (§5), justified by the step-3 wiki knowledge. Prefer: existing install > new install;
    non-AI (ImageMagick) > diffusion when it fully satisfies the request; local > free cloud.
-4. **Plan & inform** — tell the user the approach + any time estimate, then install whatever's
+5. **Plan & inform** — tell the user the approach + any time estimate, then install whatever's
    needed (no confirmation). Flag big downloads' size + ETA.
-5. **Execute** — pilot the tool via CLI / HTTP API / a `scripts/` script. Write results to
+6. **Execute** — pilot the tool via CLI / HTTP API / a `scripts/` script. Write results to
    `outputs/<YYYY-MM-DD>_<slug>/` (unless the user gave a path) with a small `manifest.json`
    (tool, model, seed, params, input path) so a run is easy to reproduce/tweak. `outputs/` is
    ephemeral — **promote any reusable recipe to `scripts/`/`wikis/`**. Never modify the input
    file in place.
-6. **Persist everything learned** (mandatory — §4): new install → `_installed.md`; any knowledge →
+7. **Persist everything learned** (mandatory — §4): new install → `_installed.md`; any knowledge →
    `wikis/<scope>/`; any reusable command → `scripts/` + its `_index.md`. Keep all `_index.md`
    files and the routing table in sync.
-7. **Commit & push** — once the work and its bookkeeping are saved, `git add -A`, commit with a
+8. **Commit & push** — once the work and its bookkeeping are saved, `git add -A`, commit with a
    clear message, and push. Leave the repo clean.
 
 ## 2. Repository map
@@ -89,7 +98,8 @@ it, then show the result.
 
 ## 4. Knowledge persistence — nothing learned is ever lost
 
-Every session must leave the repo smarter. Researched a tool, compared options, found a working
+Knowledge flows both ways: **consult `wikis/` before acting** (loop step 3 — research-first) and
+**write back everything you learn** after. Every session must leave the repo smarter. Researched a tool, compared options, found a working
 command, or hit a gotcha? **Write it to `wikis/`** — create a new scope folder if needed and add
 its one-line entry to `wikis/_index.md`. Reusable commands become **scripts**. Installed
 software/tools are logged in **`_installed.md`** (with uninstall commands); **downloaded model files
