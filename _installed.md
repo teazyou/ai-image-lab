@@ -1,7 +1,11 @@
-# _installed.md — Lab inventory
+# _installed.md — Installed software / tools
 
-Everything this lab installs is recorded here so it can be understood and cleanly removed. Heavy
-artifacts (models, tool repos, venvs) live under `downloads/` and are git-ignored.
+Software/tools this lab installs (system packages, CLIs, apps, per-tool venvs) are recorded here so
+they can be understood and cleanly removed. Their heavy files live under `downloads/` and are
+git-ignored.
+
+> **Downloaded model files & datasets are cataloged in [`downloads/_index.md`](downloads/_index.md)**,
+> not here — check that before downloading anything.
 
 **Conventions**
 - Add a row the moment you install something; include the **exact uninstall command**.

@@ -23,6 +23,13 @@ it, then show the result.
 - **Always commit and push.** After any change to tracked files (scripts, wikis, `_installed.md`,
   this manual, structure), `git add -A`, commit with a clear message, and push to the remote.
   Never leave the repo dirty at the end of a task. (`outputs/` and `downloads/` stay ignored.)
+- **Inputs by path, not upload.** The user provides images by file path — or by dropping them in
+  `inputs/` and naming them — never by pasting image content (that spends vision tokens every
+  time, even when the pixels aren't needed). With a path, the image enters context *only if you
+  choose to load it*. **Only view an image (spend vision tokens) when the task truly needs visual
+  understanding** (style/content matching, identifying what's in it, QA-ing a result). For
+  mechanical edits (resize, ratio, bg-removal, upscale, format) pass the path straight to the tool
+  and never look. When you must look, prefer a downscaled copy.
 - The user can override any decision — but rarely will. Default to acting.
 
 **Always keep the user informed (required, not optional):**
@@ -33,8 +40,8 @@ it, then show the result.
 
 ## 1. The operating loop (every request)
 
-1. **Read state** — skim `_installed.md`, `wikis/_index.md`, `scripts/_index.md`, and the routing
-   table in §5. (At session start, read this whole file.)
+1. **Read state** — skim `_installed.md`, `downloads/_index.md`, `wikis/_index.md`,
+   `scripts/_index.md`, and the routing table in §5. (At session start, read this whole file.)
 2. **Classify** the task: resize/ratio, bg-removal, upscale, txt2img, img2img, inpaint,
    style/character transfer, batch, training, …
 3. **Route** to the cheapest *correct* tool (§5). Prefer: existing install > new install;
@@ -60,10 +67,11 @@ it, then show the result.
 | `_installed.md` | Inventory of everything installed (version, size, source, **uninstall cmd**). | yes |
 | `wikis/` | Knowledge base. One folder per scope; `_index.md` lists them. | yes |
 | `scripts/` | Reusable, parametrized scripts; `_index.md` documents each. | yes |
+| `inputs/` | Buffer for source images the user drops in; reference by path/name (never uploaded). Ephemeral. | **no** (.gitkeep) |
 | `outputs/` | Buffer for generated results (user moves them out). Ephemeral. | **no** (.gitkeep) |
-| `downloads/` | All heavy artifacts: `models/`, `tools/`, `datasets/`, `cache/`. | **no** (.gitkeep) |
+| `downloads/` | All heavy artifacts: `models/`, `tools/`, `datasets/`, `cache/`. Asset catalog → `downloads/_index.md`. | content **no**; `_index.md` **yes** |
 
-**Read before acting:** `_installed.md`, `wikis/_index.md`, `scripts/_index.md`.
+**Read before acting:** `_installed.md`, `downloads/_index.md`, `wikis/_index.md`, `scripts/_index.md`.
 
 ## 3. Environment (this machine — don't re-discover it)
 
@@ -83,8 +91,11 @@ it, then show the result.
 
 Every session must leave the repo smarter. Researched a tool, compared options, found a working
 command, or hit a gotcha? **Write it to `wikis/`** — create a new scope folder if needed and add
-its one-line entry to `wikis/_index.md`. Reusable commands become **scripts**. Installs are logged
-in **`_installed.md`**. This is what makes future sessions fast.
+its one-line entry to `wikis/_index.md`. Reusable commands become **scripts**. Installed
+software/tools are logged in **`_installed.md`** (with uninstall commands); **downloaded model files
+and datasets are cataloged in `downloads/_index.md`**. **Before downloading any model, check
+`downloads/_index.md` first — never re-fetch what's already there**, and add its row the moment the
+download completes. This is what makes future sessions fast.
 
 **Wiki scope-folder convention** (e.g. `wikis/comfyui/README.md`): Overview · Install (exact
 steps) · How to pilot (CLI/API) · Apple-Silicon gotchas · Benchmarks on this machine · Links ·

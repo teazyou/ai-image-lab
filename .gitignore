@@ -1,9 +1,14 @@
 # === AI Image Lab ===
 
-# Heavy artifacts: never track downloads/ content — keep folder skeleton only.
+# Heavy artifacts: never track downloads/ content — keep folder skeleton + the asset catalog.
 downloads/**
 !downloads/**/
 !downloads/**/.gitkeep
+!downloads/_index.md
+
+# Source-image drop folder: ephemeral, never tracked — keep the folder only.
+inputs/**
+!inputs/.gitkeep
 
 # Generated results: ephemeral buffer, never tracked — keep the folder only.
 outputs/**
