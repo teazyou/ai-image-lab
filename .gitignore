@@ -1,0 +1,22 @@
+# === AI Image Lab ===
+
+# Heavy artifacts: never track downloads/ content — keep folder skeleton only.
+downloads/**
+!downloads/**/
+!downloads/**/.gitkeep
+
+# Generated results: ephemeral buffer, never tracked — keep the folder only.
+outputs/**
+!outputs/.gitkeep
+
+# Python / tooling cruft
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+*.swp
