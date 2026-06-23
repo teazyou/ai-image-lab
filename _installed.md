@@ -6,6 +6,8 @@ git-ignored.
 
 > **Downloaded model files & datasets are cataloged in [`downloads/_index.md`](downloads/_index.md)**,
 > not here — check that before downloading anything.
+>
+> **How to *use* each tool** (CLI/API, settings, gotchas) is documented in [`docs/`](docs/_index.md).
 
 **Conventions**
 - Add a row the moment you install something; include the **exact uninstall command**.

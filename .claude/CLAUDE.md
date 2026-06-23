@@ -43,7 +43,7 @@ it, then show the result.
 
 ## 1. The operating loop (every request)
 
-1. **Read state** — skim `_installed.md`, `downloads/_index.md`, `wikis/_index.md`,
+1. **Read state** — skim `_installed.md`, `downloads/_index.md`, `docs/_index.md`, `wikis/_index.md`,
    `scripts/_index.md`, and the routing table in §5. (At session start, read this whole file.)
 2. **Classify** the task: resize/ratio, bg-removal, upscale, txt2img, img2img, inpaint,
    style/character transfer, batch, training, …
@@ -57,14 +57,14 @@ it, then show the result.
    non-AI (ImageMagick) > diffusion when it fully satisfies the request; local > free cloud.
 5. **Plan & inform** — tell the user the approach + any time estimate, then install whatever's
    needed (no confirmation). Flag big downloads' size + ETA.
-6. **Execute** — pilot the tool via CLI / HTTP API / a `scripts/` script. Write results to
+6. **Execute** — pilot the tool via CLI / HTTP API / a `scripts/` script; first check `docs/<tool>` for its working commands, API shapes, and known gotchas. Write results to
    `outputs/<YYYY-MM-DD>_<slug>/` (unless the user gave a path) with a small `manifest.json`
    (tool, model, seed, params, input path) so a run is easy to reproduce/tweak. `outputs/` is
    ephemeral — **promote any reusable recipe to `scripts/`/`wikis/`**. Never modify the input
    file in place.
-7. **Persist everything learned** (mandatory — §4): new install → `_installed.md`; any knowledge →
-   `wikis/<scope>/`; any reusable command → `scripts/` + its `_index.md`. Keep all `_index.md`
-   files and the routing table in sync.
+7. **Persist everything learned** (mandatory — §4): new install → `_installed.md`; hard-won tool
+   how-to / gotchas → `docs/<tool>`; world knowledge & research → `wikis/<scope>/`; reusable
+   command → `scripts/`. Update the matching `_index.md` and the routing table.
 8. **Commit & push** — once the work and its bookkeeping are saved, `git add -A`, commit with a
    clear message, and push. Leave the repo clean.
 
@@ -73,14 +73,15 @@ it, then show the result.
 | Path | Purpose | Tracked? |
 |------|---------|----------|
 | `.claude/CLAUDE.md` | This operating manual — the brain. Keep it current. | yes |
-| `_installed.md` | Inventory of everything installed (version, size, source, **uninstall cmd**). | yes |
-| `wikis/` | Knowledge base. One folder per scope; `_index.md` lists them. | yes |
+| `_installed.md` | Inventory of installed software/tools (version, size, source, **uninstall cmd**). | yes |
+| `docs/` | **How to operate OUR setup**: installed tools' CLI/API, settings, gotchas & fixes. `_index.md` lists pages. | yes |
+| `wikis/` | **World knowledge**: AI-image concepts, research, tool/model comparisons. `_index.md` lists scopes. | yes |
 | `scripts/` | Reusable, parametrized scripts; `_index.md` documents each. | yes |
 | `inputs/` | Buffer for source images the user drops in; reference by path/name (never uploaded). Ephemeral. | **no** (.gitkeep) |
 | `outputs/` | Buffer for generated results (user moves them out). Ephemeral. | **no** (.gitkeep) |
 | `downloads/` | All heavy artifacts: `models/`, `tools/`, `datasets/`, `cache/`. Asset catalog → `downloads/_index.md`. | content **no**; `_index.md` **yes** |
 
-**Read before acting:** `_installed.md`, `downloads/_index.md`, `wikis/_index.md`, `scripts/_index.md`.
+**Read before acting:** `_installed.md`, `downloads/_index.md`, `docs/_index.md`, `wikis/_index.md`, `scripts/_index.md`.
 
 ## 3. Environment (this machine — don't re-discover it)
 
@@ -98,18 +99,30 @@ it, then show the result.
 
 ## 4. Knowledge persistence — nothing learned is ever lost
 
-Knowledge flows both ways: **consult `wikis/` before acting** (loop step 3 — research-first) and
-**write back everything you learn** after. Every session must leave the repo smarter. Researched a tool, compared options, found a working
-command, or hit a gotcha? **Write it to `wikis/`** — create a new scope folder if needed and add
-its one-line entry to `wikis/_index.md`. Reusable commands become **scripts**. Installed
-software/tools are logged in **`_installed.md`** (with uninstall commands); **downloaded model files
-and datasets are cataloged in `downloads/_index.md`**. **Before downloading any model, check
-`downloads/_index.md` first — never re-fetch what's already there**, and add its row the moment the
-download completes. This is what makes future sessions fast.
+Knowledge flows both ways: **read before acting** (loop steps 1, 3, 6) and **write back what you
+learn** after — every session must leave the repo smarter. Where each kind of knowledge lives:
 
-**Wiki scope-folder convention** (e.g. `wikis/comfyui/README.md`): Overview · Install (exact
-steps) · How to pilot (CLI/API) · Apple-Silicon gotchas · Benchmarks on this machine · Links ·
-*Last verified: YYYY-MM-DD*.
+| Kind of knowledge | Goes in |
+|-------------------|---------|
+| How to operate an installed tool — working CLI/API, settings, **gotchas & fixes** | `docs/<tool>` |
+| World knowledge — concepts, research findings, tool/model comparisons | `wikis/<scope>/` |
+| Reusable automation (a command worth re-running) | `scripts/` |
+| Installed software/tools (inventory + uninstall) | `_installed.md` |
+| Downloaded models / datasets | `downloads/_index.md` |
+
+**Save only what's worth saving.** Document the things that cost trial-and-error — exact flags, API
+shapes, env vars, version quirks, workarounds. **Don't** record trivia any shell user knows (e.g.
+copying a file with `cp`) or what `--help` already prints. Rule of thumb: *if it took back-and-forth
+to get working, write it down; otherwise skip it.*
+
+Always add/update the matching `_index.md` when you record knowledge. **Before downloading any
+model, check `downloads/_index.md` first — never re-fetch what's already there.**
+
+**Page conventions**
+- `docs/<tool>.md` (or `docs/<tool>/README.md` if it grows): How to launch · CLI/API (working
+  examples) · Settings/config · Apple-Silicon notes · Gotchas & fixes · *Last updated: YYYY-MM-DD*.
+- `wikis/<scope>/README.md`: Overview · findings / comparison · benchmarks on this machine · Links ·
+  *Last verified: YYYY-MM-DD*.
 
 ## 5. Seed routing table (task → preferred tool on this machine)
 

@@ -1,10 +1,14 @@
-# wikis/ — knowledge index
+# wikis/ — world-knowledge index
 
-One line per knowledge scope. Each scope is a folder under `wikis/`. Add a row when you create a
-new scope folder; keep the entry to one line and put the depth inside the folder.
+General AI-image-generation knowledge: concepts, research findings, and tool/model **comparisons** —
+the "what to use and why," independent of our specific machine. One folder per scope; one line here
+per folder.
 
-Scope-folder convention (see `.claude/CLAUDE.md` §4): Overview · Install · How to pilot (CLI/API) ·
-Apple-Silicon gotchas · Benchmarks on this machine · Links · *Last verified: YYYY-MM-DD*.
+> Operational "how to use the tool we installed" (CLI/API, settings, gotchas) goes in
+> [`docs/`](../docs/_index.md), not here.
+
+Scope-folder convention: Overview · findings / comparison · benchmarks on this machine · Links ·
+*Last verified: YYYY-MM-DD*.
 
 | Scope (folder) | Description |
 |----------------|-------------|
