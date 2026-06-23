@@ -14,6 +14,7 @@ imports this file so the map loads at session start.
 
 **wikis/ — world knowledge (concepts, research, tool/model comparisons)**
 - `wikis/background-removal/README.md` — bg-removal model comparison (isnet-anime / birefnet / u2net)
+- `wikis/precise-segmentation/README.md` — SOTA local interactive segmentation + matting (EfficientTAM/SAM2-3, BiRefNet, ComfyUI); for sub-part/low-contrast isolation rembg can't do
 
 **scripts/ — reusable parametrized scripts (`--help` on each)**
 - `scripts/bg_to_color.sh` — remove background, composite subject onto a solid-color canvas

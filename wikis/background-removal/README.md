@@ -32,6 +32,9 @@ blob (subject fused with snow/smoke/water) or drops a *low-contrast limb*. No si
 fixes this; the reliable move is rembg's `sam` model with keep/exclude point prompts, **combined
 with the birefnet matte** (`birefnet ∩ dilate(SAM)` to subtract a connected blob; `birefnet ∪ SAM`
 to add a dropped limb). Recipe + the connected-components stray-removal trick: docs/rembg.md.
+rembg's `sam` is only ViT-B (coarse, no real interactive refine). For the SOTA *beyond* rembg —
+EfficientTAM (native MPS, click-to-refine), SAM2/SAM3 in ComfyUI, BiRefNet matting variants, and
+when to give up and mask manually — see [precise-segmentation](../precise-segmentation/README.md).
 
 ## Replacing the background with a solid color
 
