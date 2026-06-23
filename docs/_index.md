@@ -25,4 +25,4 @@ back-and-forth.
 
 | Tool / topic | What it covers |
 |--------------|----------------|
-| _none yet_ | Written the first time a tool needs back-and-forth to work. |
+| [rembg](rembg.md) | Background removal: install recipe (numba pin fix), `U2NET_HOME` cache, model choice, solid-color composite. |

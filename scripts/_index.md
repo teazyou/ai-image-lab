@@ -5,4 +5,4 @@ One row per script. Every script must be parametrized and support `--help`. Resu
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| _none yet_ | Reusable commands are promoted to scripts here as they emerge. | |
+| [bg_to_color.sh](bg_to_color.sh) | Remove background (rembg) and place subject on a solid-color canvas; auto-picks model by subject type; can lock output size/ratio. | `scripts/bg_to_color.sh -i IN [-c black] [-t anime\|photo\|person] [-s WxH] [-o OUT]` (`--help` for all) |

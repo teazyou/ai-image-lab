@@ -19,7 +19,9 @@ X, and where is it?"* without downloading it again.
 
 | Asset | Type | For (tool / task) | Size | Path | Source (URL / repo) | Added |
 |-------|------|-------------------|------|------|---------------------|-------|
-| _none yet_ |   |   |   |   |   |   |
+| isnet-anime.onnx | segmentation model | rembg — anime/drawn-art bg removal | 176 MB | `downloads/cache/u2net/isnet-anime.onnx` | github.com/danielgatis/rembg releases | 2026-06-24 |
+
+> rembg auto-downloads models into `$U2NET_HOME`; we point that at `downloads/cache/u2net/` so they stay in-repo (ignored). Other models (u2net, birefnet-*, …) download on first use of `-m <name>`.
 
 _Type = checkpoint · LoRA · VAE · ControlNet · embedding · upscaler · …_
 

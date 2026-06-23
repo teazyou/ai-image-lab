@@ -129,7 +129,7 @@ model, check `downloads/_index.md` first — never re-fetch what's already there
 | Task | Preferred tool | Notes |
 |------|----------------|-------|
 | Resize / aspect ratio / pad / format | **ImageMagick** (`magick`) | installed; no AI needed |
-| Background removal / cutout | **rembg** / **BiRefNet** | light, ONNX, runs on Mac |
+| Background removal / cutout | **rembg** *(installed)* | ONNX/CPU on Mac. Model by subject: anime→`isnet-anime`, person→`u2net_human_seg`, photo→`birefnet-general`. Solid-color bg → `scripts/bg_to_color.sh`. Docs: `docs/rembg.md`, wiki: `wikis/background-removal/`. |
 | Upscale (e.g. → 1080p+) | **Real-ESRGAN** | MPS; or `magick` for plain scale |
 | Text→image / img→img / inpaint | **ComfyUI** (MPS) — backbone | piloted via its HTTP/WS API |
 | Flux models | **mflux** (MLX, Apple-native) | fastest Flux path on M-series |

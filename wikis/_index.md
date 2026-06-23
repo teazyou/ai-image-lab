@@ -12,4 +12,4 @@ Scope-folder convention: Overview · findings / comparison · benchmarks on this
 
 | Scope (folder) | Description |
 |----------------|-------------|
-| _none yet_ | Knowledge is gathered on first need and recorded here. |
+| [background-removal](background-removal/README.md) | rembg model comparison (isnet-anime / birefnet / u2net), when to use which, solid-color composite. |

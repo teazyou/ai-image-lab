@@ -16,11 +16,12 @@ git-ignored.
 
 ## Installed by the lab (safe to remove)
 
-_None yet — tools and models are installed on first need._
-
 | Name | Type | Version | Installed | Size | Location | Source | Uninstall | Apple-Silicon |
 |------|------|---------|-----------|------|----------|--------|-----------|---------------|
-|      |      |         |           |      |          |        |           |               |
+| uv | Python pkg/venv manager | 0.11.23 | 2026-06-24 | ~50 MB | Homebrew (`/opt/homebrew`) | `brew install uv` | `brew uninstall uv` | native arm64 ✓ |
+| rembg | bg-removal CLI (ONNX) | 2.0.76 | 2026-06-24 | ~1.2 GB venv | `downloads/tools/rembg/.venv` | `uv pip install "rembg[cpu,cli]"` | `rm -rf downloads/tools/rembg` | CPU onnxruntime ✓ (no MPS needed for 1 img); see [docs/rembg.md](docs/rembg.md) |
+
+> **rembg install gotcha:** plain `rembg[cpu,cli]` backtracks `numba` to 0.53.1 (Python <3.10 only) and fails on Py 3.12. Add `"numba>=0.60" "llvmlite>=0.43"` to the install. Full recipe in [docs/rembg.md](docs/rembg.md).
 
 ## Pre-existing system tools (NOT installed by the lab — do not remove)
 
