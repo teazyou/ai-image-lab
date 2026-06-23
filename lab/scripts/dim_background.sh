@@ -3,27 +3,27 @@
 # Pipeline: rembg (subject alpha) -> ImageMagick: darken full image, paste original subject on top.
 # At --opacity 1.0 the background becomes a solid color (same as bg_to_color.sh); below 1.0 it just
 # dims the background (e.g. 0.7 = "black square @ 70% opacity, background stays faintly visible").
-# Repo: ai-image-lab. See docs/rembg.md and wikis/background-removal/.
+# Repo: ai-image-lab. See lab/docs/rembg.md and lab/wikis/background-removal/.
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: scripts/dim_background.sh -i INPUT [options]
+Usage: lab/scripts/dim_background.sh -i INPUT [options]
 
 Keep INPUT's subject untouched; overlay COLOR at OPACITY over the rest (same canvas size).
 
 Options:
   -i, --input PATH      Source image (required). Never modified in place.
-  -o, --output PATH     Output. Default: outputs/<stem>_dim<NN>.<ext> (cutout -> outputs/assets/)
+  -o, --output PATH     Output. Default: outputs/<stem>_dim<NN>.<ext> (cutout -> .cache/)
   -O, --opacity N       Overlay opacity 0..1. 1.0 = solid bg; 0.7 = darken rest to 30%. Default: 0.7
   -c, --color COLOR     Overlay color (IM name or #hex). Default: black
   -m, --model NAME      rembg model. Default: birefnet-general (best on busy/blended scenes)
   -h, --help            Show this help.
 
 Examples:
-  scripts/dim_background.sh -i a.jpg -O 0.7              # keep subject, darken rest to 30%
-  scripts/dim_background.sh -i a.jpg -O 1.0             # subject on solid black bg
-  scripts/dim_background.sh -i a.jpg -O 0.7 -c '#001020'
+  lab/scripts/dim_background.sh -i a.jpg -O 0.7              # keep subject, darken rest to 30%
+  lab/scripts/dim_background.sh -i a.jpg -O 1.0             # subject on solid black bg
+  lab/scripts/dim_background.sh -i a.jpg -O 0.7 -c '#001020'
 EOF
 }
 
@@ -43,16 +43,16 @@ done
 [[ -n "$INPUT" ]] || { echo "Error: --input is required" >&2; usage; exit 1; }
 [[ -f "$INPUT" ]] || { echo "Error: input not found: $INPUT" >&2; exit 1; }
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-REMBG="$ROOT/downloads/tools/rembg/.venv/bin/rembg"
-[[ -x "$REMBG" ]] || { echo "Error: rembg venv missing. See docs/rembg.md to install." >&2; exit 1; }
-export U2NET_HOME="$ROOT/downloads/cache/u2net"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+REMBG="$ROOT/lab/downloads/tools/rembg/.venv/bin/rembg"
+[[ -x "$REMBG" ]] || { echo "Error: rembg venv missing. See lab/docs/rembg.md to install." >&2; exit 1; }
+export U2NET_HOME="$ROOT/lab/downloads/cache/u2net"
 
 OPCT="$(awk -v o="$OPACITY" 'BEGIN{printf "%.2f", o*100}')"   # opacity as a percentage
 
 stem="$(basename "$INPUT")"; stem="${stem%.*}"
 nn="$(awk -v o="$OPACITY" 'BEGIN{printf "%02d", o*100}')"
-ASSETS="$ROOT/outputs/assets"; mkdir -p "$ASSETS"
+ASSETS="$ROOT/.cache"; mkdir -p "$ASSETS"
 CUTOUT="$ASSETS/${stem}_cutout.png"
 [[ -n "$OUTPUT" ]] || OUTPUT="$ROOT/outputs/${stem}_dim${nn}.png"
 mkdir -p "$(dirname "$OUTPUT")"

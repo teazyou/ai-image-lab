@@ -12,10 +12,10 @@ tokens).
 
 **How it works / where things live**
 - [.claude/CLAUDE.md](.claude/CLAUDE.md) — the operating manual Claude follows (read this first).
-- [_index.md](_index.md) — map of every path in the repo, one line each.
-- [_installed.md](_installed.md) — inventory of everything installed (and how to remove it).
-- [wikis/](wikis/) — knowledge base, grown on demand.
-- [scripts/](scripts/) — reusable scripts.
+- [lab/_index.md](lab/_index.md) — map of every path in the repo, one line each.
+- [lab/_installed.md](lab/_installed.md) — inventory of everything installed (and how to remove it).
+- [lab/wikis/](lab/wikis/) — knowledge base, grown on demand.
+- [lab/scripts/](lab/scripts/) — reusable scripts.
 
-Heavy artifacts (models, tools, datasets) live under `downloads/`, and generated results under
+Heavy artifacts (models, tools, datasets) live under `lab/downloads/`, and generated results under
 `outputs/`; both are git-ignored.

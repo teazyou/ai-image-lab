@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # bg_to_color.sh — remove an image's background and place the subject on a solid-color canvas.
 # Pipeline: rembg (transparent cutout) -> ImageMagick composite onto a solid canvas.
-# Repo: ai-image-lab. See docs/rembg.md and wikis/background-removal/.
+# Repo: ai-image-lab. See lab/docs/rembg.md and lab/wikis/background-removal/.
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: scripts/bg_to_color.sh -i INPUT [options]
+Usage: lab/scripts/bg_to_color.sh -i INPUT [options]
 
 Remove INPUT's background and composite the subject onto a solid-color canvas.
 
 Options:
   -i, --input PATH     Source image (required). Never modified in place.
-  -o, --output PATH    Output PNG. Default: outputs/<stem>_<color>-bg.png (cutout -> outputs/assets/)
+  -o, --output PATH    Output PNG. Default: outputs/<stem>_<color>-bg.png (cutout -> .cache/)
   -c, --color COLOR    Background color (ImageMagick name or #hex). Default: black
   -m, --model NAME     rembg model. Default: auto-pick by --type
   -t, --type KIND      Subject hint when -m not given: anime | photo | person  (default: anime)
@@ -20,9 +20,9 @@ Options:
   -h, --help           Show this help.
 
 Examples:
-  scripts/bg_to_color.sh -i inputs/art.jpg                     # anime art -> black bg, source size
-  scripts/bg_to_color.sh -i photo.jpg -t photo -c white -s 1920x1080
-  scripts/bg_to_color.sh -i p.png -m u2net_human_seg -c '#101010'
+  lab/scripts/bg_to_color.sh -i inputs/art.jpg                     # anime art -> black bg, source size
+  lab/scripts/bg_to_color.sh -i photo.jpg -t photo -c white -s 1920x1080
+  lab/scripts/bg_to_color.sh -i p.png -m u2net_human_seg -c '#101010'
 EOF
 }
 
@@ -43,11 +43,11 @@ done
 [[ -n "$INPUT" ]] || { echo "Error: --input is required" >&2; usage; exit 1; }
 [[ -f "$INPUT" ]] || { echo "Error: input not found: $INPUT" >&2; exit 1; }
 
-# Resolve repo root from this script's location so it works from any CWD.
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-REMBG="$ROOT/downloads/tools/rembg/.venv/bin/rembg"
-[[ -x "$REMBG" ]] || { echo "Error: rembg venv missing. See docs/rembg.md to install." >&2; exit 1; }
-export U2NET_HOME="$ROOT/downloads/cache/u2net"
+# Resolve repo root from this script's location (lab/scripts/.. -> lab; /../.. -> repo root).
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+REMBG="$ROOT/lab/downloads/tools/rembg/.venv/bin/rembg"
+[[ -x "$REMBG" ]] || { echo "Error: rembg venv missing. See lab/docs/rembg.md to install." >&2; exit 1; }
+export U2NET_HOME="$ROOT/lab/downloads/cache/u2net"
 
 if [[ -z "$MODEL" ]]; then
   case "$TYPE" in
@@ -60,12 +60,12 @@ fi
 
 stem="$(basename "$INPUT")"; stem="${stem%.*}"
 colslug="$(echo "$COLOR" | tr -cd 'a-zA-Z0-9')"
-# Convention: final result -> outputs/ root; intermediates -> outputs/assets/.
+# Convention: final result -> outputs/ root; intermediates -> .cache/.
 if [[ -z "$OUTPUT" ]]; then
   OUTPUT="$ROOT/outputs/${stem}_${colslug}-bg.png"
 fi
 mkdir -p "$(dirname "$OUTPUT")"
-ASSETS="$ROOT/outputs/assets"; mkdir -p "$ASSETS"
+ASSETS="$ROOT/.cache"; mkdir -p "$ASSETS"
 CUTOUT="$ASSETS/${stem}_cutout.png"
 
 echo ">> rembg ($MODEL) -> $CUTOUT"

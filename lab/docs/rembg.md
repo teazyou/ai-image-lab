@@ -1,16 +1,16 @@
 # rembg — background removal (our setup)
 
 ONNX-based background removal. Installed as an isolated `uv` venv at
-`downloads/tools/rembg/.venv`. Version 2.0.76. See world-knowledge / model comparison in
-[wikis/background-removal](../wikis/background-removal/README.md).
+`lab/downloads/tools/rembg/.venv`. Version 2.0.76. See world-knowledge / model comparison in
+[lab/wikis/background-removal](../wikis/background-removal/README.md).
 
 ## Install (the recipe that actually works on Py 3.12 / Apple Silicon)
 
 ```bash
-export UV_CACHE_DIR="$PWD/downloads/cache/uv"
-export UV_PYTHON_INSTALL_DIR="$PWD/downloads/cache/uv-python"
-uv venv --python 3.12 downloads/tools/rembg/.venv
-uv pip install --python downloads/tools/rembg/.venv \
+export UV_CACHE_DIR="$PWD/lab/downloads/cache/uv"
+export UV_PYTHON_INSTALL_DIR="$PWD/lab/downloads/cache/uv-python"
+uv venv --python 3.12 lab/downloads/tools/rembg/.venv
+uv pip install --python lab/downloads/tools/rembg/.venv \
   "rembg[cpu,cli]" "numba>=0.60" "llvmlite>=0.43"
 ```
 
@@ -24,14 +24,14 @@ uv pip install --python downloads/tools/rembg/.venv \
   (`RuntimeError: Cannot install on Python version 3.12.x`). Fix: pin `"numba>=0.60"
   "llvmlite>=0.43"` in the install command (done above).
 - **Keep model downloads in-repo.** rembg fetches models to `~/.u2net` by default. Set
-  `U2NET_HOME="$PWD/downloads/cache/u2net"` so they land in the (ignored) repo cache and get
-  cataloged in `downloads/_catalog.md`. First use of a model downloads it (isnet-anime ≈ 176 MB).
+  `U2NET_HOME="$PWD/lab/downloads/cache/u2net"` so they land in the (ignored) repo cache and get
+  cataloged in `lab/downloads/_catalog.md`. First use of a model downloads it (isnet-anime ≈ 176 MB).
 - **`birefnet-general` download is flaky (973 MB).** rembg's pooch/requests downloader doesn't
   resume; the GitHub release CDN resets mid-stream (`urllib3 IncompleteRead` / `Connection reset`),
   leaving a partial file and a crash. Fix: fetch the `.onnx` yourself with a curl resume-loop, then
   re-run rembg (it sees the cached file and skips the download):
   ```bash
-  DEST="downloads/cache/u2net/birefnet-general.onnx"; T=972666916
+  DEST="lab/downloads/cache/u2net/birefnet-general.onnx"; T=972666916
   URL="https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-general-epoch_244.onnx"
   for i in $(seq 1 40); do
     [ "$(stat -f%z "$DEST" 2>/dev/null || echo 0)" -ge "$T" ] && break
@@ -42,8 +42,8 @@ uv pip install --python downloads/tools/rembg/.venv \
 ## CLI (working examples)
 
 ```bash
-export U2NET_HOME="$PWD/downloads/cache/u2net"
-BIN=downloads/tools/rembg/.venv/bin/rembg
+export U2NET_HOME="$PWD/lab/downloads/cache/u2net"
+BIN=lab/downloads/tools/rembg/.venv/bin/rembg
 
 # Single image -> transparent PNG. -m picks the model.
 $BIN i -m isnet-anime input.jpg cutout.png      # anime / drawn art
@@ -65,12 +65,12 @@ magick -size 1920x1080 canvas:black cutout.png -gravity center -composite -depth
 ```
 
 Use `-depth 8` — otherwise the `canvas:` source can yield a 16-bit PNG (2–3× larger, non-standard).
-Reusable wrapper: [`scripts/bg_to_color.sh`](../scripts/bg_to_color.sh).
+Reusable wrapper: [`lab/scripts/bg_to_color.sh`](../scripts/bg_to_color.sh).
 
 ## Dim the background instead of removing it
 
 Keep the subject untouched, overlay a color over the rest at a chosen opacity (0.7 = "black @ 70%,
-background stays faintly visible"; 1.0 = solid bg): [`scripts/dim_background.sh`](../scripts/dim_background.sh).
+background stays faintly visible"; 1.0 = solid bg): [`lab/scripts/dim_background.sh`](../scripts/dim_background.sh).
 Core trick = darken whole image, then paste the original cutout back on top. Because the background
 is only *dimmed* (not cut to a hard edge against black), an imperfect matte is nearly invisible —
 so the auto-models are "good enough" here even when they'd look rough on a pure-black composite.

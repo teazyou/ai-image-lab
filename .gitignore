@@ -1,19 +1,18 @@
 # === AI Image Lab ===
 
-# Heavy artifacts: never track downloads/ content — keep folder skeleton + the asset catalog.
-downloads/**
-!downloads/**/
-!downloads/**/.gitkeep
-!downloads/_catalog.md
+# Heavy artifacts: never track lab/downloads/ content — keep folder skeleton + the asset catalog.
+lab/downloads/**
+!lab/downloads/**/
+!lab/downloads/**/.gitkeep
+!lab/downloads/_catalog.md
 
-# Source-image drop folder: ephemeral, never tracked — keep the folder only.
-inputs/**
-!inputs/.gitkeep
+# Intermediate/temp files (cutouts, masks): ephemeral — keep the folder only.
+.cache/**
+!.cache/.gitkeep
 
-# Generated results: ephemeral buffer, never tracked — keep folder skeletons (incl. assets/) only.
-outputs/**
-!outputs/**/
-!outputs/**/.gitkeep
+# Source images & generated results: user-managed, untracked (recreated after a clone — no .gitkeep).
+inputs/
+outputs/
 
 # Python / tooling cruft
 __pycache__/

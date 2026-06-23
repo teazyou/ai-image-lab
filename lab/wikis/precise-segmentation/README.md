@@ -4,7 +4,7 @@
 sub-part* (one limb, a hairband) or can't separate a subject from a *connected / low-contrast blob*
 (bare limb on a bright blanket, white clothing on snow, a character reflected in water). This is the
 SOTA scan *beyond* [background-removal](../background-removal/README.md). World-knowledge, not yet
-benchmarked here. See also rembg's `sam` usage in [docs/rembg.md](../../docs/rembg.md).
+benchmarked here. See also rembg's `sam` usage in [lab/docs/rembg.md](../../docs/rembg.md).
 
 **Two-part approach.** Precise selective masking = **promptable click-to-select** (positive clicks
 on what to keep, **negative clicks to cut the connected blob**) **+ high-quality matting** (clean
@@ -52,7 +52,7 @@ illustration-tuned matte. `SkyTNT/anime-segmentation` (isnet-anime origin) and
    (snow/blanket/reflection). This is the step birefnet + SAM ViT-B lacked.
 2. **Refine edges (hair):** feed the selected region to BiRefNet HR-matting (CPU on Mac — slow but
    offline/free), or keep the SAM mask if edges are clean enough.
-3. **Composite** as before (on black / dim background — see docs/rembg.md scripts).
+3. **Composite** as before (on black / dim background — see lab/docs/rembg.md scripts).
 4. **UI:** ComfyUI (ComfyUI-RMBG + a SAM2/SAM3 points node) for an integrated click canvas; or
    script EfficientTAM for a CLI path.
 

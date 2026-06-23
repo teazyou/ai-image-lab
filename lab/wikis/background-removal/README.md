@@ -2,7 +2,7 @@
 
 **Overview.** Background removal = segment foreground subject, output an alpha matte / transparent
 cutout. On this lab the go-to engine is **rembg** (ONNX, runs on CPU on Apple Silicon — no CUDA
-needed). How to run it: [docs/rembg.md](../../docs/rembg.md).
+needed). How to run it: [lab/docs/rembg.md](../../docs/rembg.md).
 
 ## Model comparison (rembg, as of 2026-06)
 
@@ -31,7 +31,7 @@ people and **miss anime characters** — don't use them on illustration.)
 blob (subject fused with snow/smoke/water) or drops a *low-contrast limb*. No single auto-model
 fixes this; the reliable move is rembg's `sam` model with keep/exclude point prompts, **combined
 with the birefnet matte** (`birefnet ∩ dilate(SAM)` to subtract a connected blob; `birefnet ∪ SAM`
-to add a dropped limb). Recipe + the connected-components stray-removal trick: docs/rembg.md.
+to add a dropped limb). Recipe + the connected-components stray-removal trick: lab/docs/rembg.md.
 rembg's `sam` is only ViT-B (coarse, no real interactive refine). For the SOTA *beyond* rembg —
 EfficientTAM (native MPS, click-to-refine), SAM2/SAM3 in ComfyUI, BiRefNet matting variants, and
 when to give up and mask manually — see [precise-segmentation](../precise-segmentation/README.md).
@@ -40,7 +40,7 @@ when to give up and mask manually — see [precise-segmentation](../precise-segm
 
 rembg only removes the background (transparent alpha). To get a **solid-color background** (e.g.
 plain black), composite the transparent cutout onto a solid canvas with ImageMagick — see
-docs/rembg.md. Compositing the cutout centered onto a fixed-size canvas also locks in the target
+lab/docs/rembg.md. Compositing the cutout centered onto a fixed-size canvas also locks in the target
 resolution / aspect ratio in one step.
 
 ## Benchmarks on this machine (M4 Max, CPU onnxruntime)
@@ -48,7 +48,7 @@ resolution / aspect ratio in one step.
 - isnet-anime on a 1920×1080 image: ~23 s CPU time incl. model load (first run also downloads
   176 MB). Fast enough that MPS/GPU isn't worth the trouble for single images.
 - birefnet-general: ~9 s wall per image (1–4 MP) on M4 Max CPU once cached; model is 973 MB (first
-  run downloads it — see the resume-loop gotcha in docs/rembg.md).
+  run downloads it — see the resume-loop gotcha in lab/docs/rembg.md).
 
 ## Links
 - rembg: https://github.com/danielgatis/rembg · https://pypi.org/project/rembg/
@@ -61,8 +61,8 @@ Some requests want the subject untouched and the background **darkened**, not de
 square at 70% opacity over everything else"). Same matte, different composite: overlay a
 semi-transparent color over the whole image, then paste the original subject (the cutout) back on
 top. Opacity 1.0 = solid bg; 0.7 = background kept at 30% brightness. Script:
-[`scripts/dim_background.sh`](../../scripts/dim_background.sh). For a two-zone treatment (e.g. sky →
+[`lab/scripts/dim_background.sh`](../../scripts/dim_background.sh). For a two-zone treatment (e.g. sky →
 pure black, foreground water/flowers → 70% dim) split the background with a feathered horizontal
-mask before compositing the subject — see docs/rembg.md.
+mask before compositing the subject — see lab/docs/rembg.md.
 
 *Last verified: 2026-06-24*
