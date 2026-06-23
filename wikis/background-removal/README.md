@@ -19,6 +19,20 @@ needed). How to run it: [docs/rembg.md](../../docs/rembg.md).
 **Rule of thumb:** drawn/anime → `isnet-anime`; photo of a person → `u2net_human_seg` or
 `birefnet-portrait`; everything else / max quality → `birefnet-general`.
 
+**Caveat (verified 2026-06-24): `isnet-anime` only works on *clean* illustrations.** On busy/blended
+scenes — game screenshots, a character melting into a dark/red background, subject reflected in
+water — it returns a faint, **translucent** matte (alpha near-zero everywhere), useless for a hard
+cutout. **`birefnet-general` is the fix**: solid opaque masks that even keep thin attached elements
+(flowing ribbons, hair bands, robe). So for anime *characters in complex scenes*, reach for
+`birefnet-general`, not `isnet-anime`. (`u2net_human_seg`/`birefnet-portrait` are trained on real
+people and **miss anime characters** — don't use them on illustration.)
+
+**Hard isolations → SAM (click-to-select).** birefnet still fails two ways: it grabs a *connected*
+blob (subject fused with snow/smoke/water) or drops a *low-contrast limb*. No single auto-model
+fixes this; the reliable move is rembg's `sam` model with keep/exclude point prompts, **combined
+with the birefnet matte** (`birefnet ∩ dilate(SAM)` to subtract a connected blob; `birefnet ∪ SAM`
+to add a dropped limb). Recipe + the connected-components stray-removal trick: docs/rembg.md.
+
 ## Replacing the background with a solid color
 
 rembg only removes the background (transparent alpha). To get a **solid-color background** (e.g.
@@ -30,10 +44,22 @@ resolution / aspect ratio in one step.
 
 - isnet-anime on a 1920×1080 image: ~23 s CPU time incl. model load (first run also downloads
   176 MB). Fast enough that MPS/GPU isn't worth the trouble for single images.
+- birefnet-general: ~9 s wall per image (1–4 MP) on M4 Max CPU once cached; model is 973 MB (first
+  run downloads it — see the resume-loop gotcha in docs/rembg.md).
 
 ## Links
 - rembg: https://github.com/danielgatis/rembg · https://pypi.org/project/rembg/
 - BiRefNet vs rembg vs U2Net (production notes):
   https://dev.to/om_prakash_3311f8a4576605/birefnet-vs-rembg-vs-u2net-which-background-removal-model-actually-works-in-production-4830
+
+## Keeping the subject but only *dimming* the rest (not full removal)
+
+Some requests want the subject untouched and the background **darkened**, not deleted (e.g. "black
+square at 70% opacity over everything else"). Same matte, different composite: overlay a
+semi-transparent color over the whole image, then paste the original subject (the cutout) back on
+top. Opacity 1.0 = solid bg; 0.7 = background kept at 30% brightness. Script:
+[`scripts/dim_background.sh`](../../scripts/dim_background.sh). For a two-zone treatment (e.g. sky →
+pure black, foreground water/flowers → 70% dim) split the background with a feathered horizontal
+mask before compositing the subject — see docs/rembg.md.
 
 *Last verified: 2026-06-24*

@@ -17,6 +17,7 @@ imports this file so the map loads at session start.
 
 **scripts/ — reusable parametrized scripts (`--help` on each)**
 - `scripts/bg_to_color.sh` — remove background, composite subject onto a solid-color canvas
+- `scripts/dim_background.sh` — keep subject, overlay a color over the rest at a chosen opacity (dim, not remove)
 
 **inputs/ — drop-in source images (git-ignored, ephemeral)**
 

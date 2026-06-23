@@ -26,6 +26,18 @@ uv pip install --python downloads/tools/rembg/.venv \
 - **Keep model downloads in-repo.** rembg fetches models to `~/.u2net` by default. Set
   `U2NET_HOME="$PWD/downloads/cache/u2net"` so they land in the (ignored) repo cache and get
   cataloged in `downloads/_catalog.md`. First use of a model downloads it (isnet-anime ≈ 176 MB).
+- **`birefnet-general` download is flaky (973 MB).** rembg's pooch/requests downloader doesn't
+  resume; the GitHub release CDN resets mid-stream (`urllib3 IncompleteRead` / `Connection reset`),
+  leaving a partial file and a crash. Fix: fetch the `.onnx` yourself with a curl resume-loop, then
+  re-run rembg (it sees the cached file and skips the download):
+  ```bash
+  DEST="downloads/cache/u2net/birefnet-general.onnx"; T=972666916
+  URL="https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-general-epoch_244.onnx"
+  for i in $(seq 1 40); do
+    [ "$(stat -f%z "$DEST" 2>/dev/null || echo 0)" -ge "$T" ] && break
+    curl -sL --retry 3 --retry-delay 1 -C - -o "$DEST" "$URL" || true   # -C - = resume
+  done
+  ```
 
 ## CLI (working examples)
 
@@ -54,5 +66,46 @@ magick -size 1920x1080 canvas:black cutout.png -gravity center -composite -depth
 
 Use `-depth 8` — otherwise the `canvas:` source can yield a 16-bit PNG (2–3× larger, non-standard).
 Reusable wrapper: [`scripts/bg_to_color.sh`](../scripts/bg_to_color.sh).
+
+## Dim the background instead of removing it
+
+Keep the subject untouched, overlay a color over the rest at a chosen opacity (0.7 = "black @ 70%,
+background stays faintly visible"; 1.0 = solid bg): [`scripts/dim_background.sh`](../scripts/dim_background.sh).
+Core trick = darken whole image, then paste the original cutout back on top. Because the background
+is only *dimmed* (not cut to a hard edge against black), an imperfect matte is nearly invisible —
+so the auto-models are "good enough" here even when they'd look rough on a pure-black composite.
+
+## SAM — click-to-select a *specific* object (`-m sam`)
+
+When auto-models grab too much (subject fused with a connected blob — snow, smoke, water) or too
+little (a low-contrast limb dropped), use SAM with point prompts. Pass prompts as JSON via `-x`;
+`label:1` = keep-point, `label:0` = exclude-point (coords are full-res pixels). `-om` = output mask
+only. Models (ViT-B encoder 359 MB + decoder 16 MB) download on first use — **flaky, use the
+resume-loop above** (same GitHub release host; files `sam_vit_b_01ec64.{encoder,decoder}.onnx`).
+
+```bash
+rembg i -m sam -om -x '{"sam_prompt":[
+  {"type":"point","label":1,"data":[737,242]},   # keep: on the subject
+  {"type":"point","label":0,"data":[207,553]}]}' \  # exclude: on the unwanted blob
+  input.jpg mask.png
+# rectangle prompt also supported: {"type":"rectangle","data":[x1,y1,x2,y2]}
+```
+
+SAM (ViT-B) masks are **coarse/grainy** — don't use them raw for a black composite. Combine with a
+clean birefnet matte:
+- **Over-segmentation** (birefnet kept a connected blob): `birefnet ∩ dilate(SAM)` keeps birefnet's
+  crisp edge but cuts anything far from the SAM selection.
+  `magick sam.png -threshold 40% -morphology Dilate Disk:20 dil.png; magick bfAlpha.png dil.png -compose Darken -composite mask.png`
+- **Under-segmentation** (birefnet dropped a limb): `birefnet ∪ SAM` then close/open to clean.
+  `magick bfAlpha.png sam.png -compose Lighten -composite u.png`
+- **Drop floating strays:** `-define connected-components:area-threshold=30000 -define connected-components:mean-color=true -connected-components 8` (small disconnected bits merge to bg; the one big subject blob survives). Don't use `keep-top=1` — it can keep the *background* component.
+- A pure-luminance mask is NOT a substitute when background and subject are similarly bright (e.g. a
+  bright blanket behind bright skin) — it grabs the background. Use SAM there.
+
+### Two-zone treatment (e.g. sky → black, foreground → dimmed)
+Split the background with a feathered horizontal mask at the horizon, then paste the subject:
+darken whole image (`-evaluate multiply 0.3`); build sky mask (`-size WxH xc:black -fill white
+-draw "rectangle 0,0 W,HORIZON" -blur 0x18`); composite a black layer through that mask over the
+dark base; finally composite the subject cutout on top.
 
 *Last updated: 2026-06-24*
