@@ -6,6 +6,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 **Root — kept lean for image content**
 - `.claude/CLAUDE.md` — operating manual & all rules (the brain; read fully every session)
 - `.claude/settings.json` — Claude Code project settings; disables auto-memory (`autoMemoryEnabled: false`, see CLAUDE.md §8)
+- `.claude/commands/api.md` — `/api` slash command: fal.ai gen/edit with best Grok/Google/OpenAI model → normalize to size+ratio. Self-contained (reads no docs)
 - `README.md` — human-facing project intro
 - `.env` — secrets (git-ignored); holds `FAL_KEY` for fal.ai. Template: `.env.example` (tracked)
 - `.env.example` — tracked template for `.env`
