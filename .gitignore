@@ -25,6 +25,10 @@ venv/
 *.egg-info/
 .ipynb_checkpoints/
 
+# Secrets — never track the real key; the tracked template is .env.example.
+.env
+!.env.example
+
 # OS / editor
 .DS_Store
 *.swp

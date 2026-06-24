@@ -7,6 +7,8 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `.claude/CLAUDE.md` — operating manual & all rules (the brain; read fully every session)
 - `.claude/settings.json` — Claude Code project settings; disables auto-memory (`autoMemoryEnabled: false`, see CLAUDE.md §8)
 - `README.md` — human-facing project intro
+- `.env` — secrets (git-ignored); holds `FAL_KEY` for fal.ai. Template: `.env.example` (tracked)
+- `.env.example` — tracked template for `.env`
 - `inputs/` — drop-in source images (untracked, user-managed; recreate after a clone)
 - `outputs/` — generated results, final images sit at the root (untracked, user-managed)
 - `.cache/` — temp/intermediate assets (cutouts, masks, experimental gens, working copies), **one subfolder per source image** (`.cache/<job>/`); git-ignored, `.gitkeep` only
@@ -19,6 +21,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 **lab/docs/ — how to operate OUR installed tools (CLI/API, gotchas)**
 - `lab/docs/rembg.md` — rembg: install recipe, model choice, solid-color composite
 - `lab/docs/comfyui.md` — ComfyUI: headless launch flags, HTTP API, client script, installed SDXL inpaint model, measured perf
+- `lab/docs/fal-api/README.md` — fal.ai API: install, `.env`/`FAL_KEY`, `fal_run.py` usage, best model per brand (OpenAI/Google/xAI) + ids/schemas, gotchas
 
 **lab/wikis/ — world knowledge (concepts, research, tool/model comparisons)**
 - `lab/wikis/background-removal/README.md` — bg-removal model comparison (isnet-anime / birefnet / u2net)
@@ -32,6 +35,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `lab/scripts/dim_background.sh` — keep subject, overlay a color over the rest at a chosen opacity (dim, not remove)
 - `lab/scripts/comfyui_run.py` — headless ComfyUI client: upload inputs, submit API-format workflow, poll, save results
 - `lab/scripts/compose_wallpaper.sh` — place a transparent cutout on a solid canvas: main-blob trim, scale to %-of-height, gravity anchor, optional bottom feather
+- `lab/scripts/fal_run.py` — fal.ai batch client: prompts × image/folder → gen or edit via OpenAI/Google/xAI (or raw fal id), saves to `outputs/`; `--dry-run`, cost estimate
 
 **lab/downloads/ — heavy artifacts (content git-ignored)**
 - `lab/downloads/_catalog.md` — catalog of downloaded models/datasets (check before downloading)
