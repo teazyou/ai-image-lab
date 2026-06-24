@@ -1,6 +1,6 @@
 ---
 description: fal.ai image gen/edit with the best Grok/Google/OpenAI model, normalized to an exact size+ratio
-argument-hint: [-grok] [-google] [-openai] [-reprompt] [-preview] [-size=1080p] [-ratio=169] <input-path|folder|(attached)> <prompt...>
+argument-hint: [-help] [-grok] [-google] [-openai] [-reprompt] [-preview] [-size=1080p] [-ratio=169] <input-path|folder|(attached)> <prompt...>
 ---
 
 # /api — generate image(s) via fal.ai, one per selected brand, normalized to size+ratio
@@ -35,10 +35,50 @@ on fal.ai (a **PAID** API — the `FAL_KEY` is already in repo-root `.env`), sav
 - `magick` (ImageMagick) is installed for the resize step.
 - `outputs/` is git-ignored ⇒ **nothing to commit** after a run.
 
+## Step 0 — `-help`
+If `$ARGUMENTS` contains `-help` (or `--help`, or is empty), **print the block below verbatim and
+STOP** — do nothing else (no parsing, no sub-agent, no API call):
+
+```
+/api — fal.ai image gen/edit with the best Grok/Google/OpenAI model, normalized to an exact size+ratio
+
+USAGE
+  /api [flags] <input> <prompt...>
+  Flags first, then the input location, then the prompt. One output per (selected model × input image).
+
+MODELS (pick ≥1)
+  -grok      xAI Grok Imagine     — fast; fal's edit is standard-tier, may distort identity/pose
+  -google    Nano Banana Pro      — most faithful editor (best for keeping the subject)
+  -openai    GPT Image 2          — clean, but native ~1 MP so it's upscaled to target (softer)
+
+OPTIONS
+  -reprompt        Clarify/clean the prompt before sending. Omit = sent VERBATIM (typos kept).
+  -preview         Allow viewing the input & results. Omit = never looks at any pixels.
+  -size=VALUE      Short side in px: 720p | 1080p | 1440p | 2160p (4k=2160p).  Default: 1080p
+  -ratio=VALUE     Aspect, colon removed: 169 916 11 43 34 32 23 219.         Default: 169 (16:9)
+  -help            Show this help and exit.
+
+POSITIONALS (always this order, after the flags)
+  <input>          An image path, a folder path (edits every image), or an attached/dropped image
+                   (then omit this). If missing entirely, you'll be asked.
+  <prompt...>      Everything after the input = the instruction sent to the model.
+
+EXAMPLES
+  /api -google inputs/cat.png make it a neon cyberpunk wallpaper
+  /api -grok -google -openai inputs/ a clean black-background portrait     # 3 models × every image in inputs/
+  /api -google -reprompt -size=1440p -ratio=916 inputs/hero.jpg phone wallpaper, keep the character
+  /api -openai -preview <drop an image> turn this into a watercolor
+
+NOTES
+  • fal.ai is a PAID API (key already in .env); each run prints an est cost.
+  • Every result is resized to the exact target W×H with ImageMagick. Saved to outputs/ (git-ignored).
+```
+
 ## Step 1 — parse `$ARGUMENTS`
 Tokens beginning with `-` are flags; everything else is positional, in order.
 
 Flags:
+- `-help` / `--help` — handled in Step 0 (print help, stop).
 - `-grok` / `-google` / `-openai` — model(s) to call; any combination, **≥1 required**. If none → **ask** which.
 - `-reprompt` — clarify the prompt before sending (Step 3). If **absent**, send the prompt
   **verbatim — exact literal copy/paste, change nothing** (keep typos, casing, punctuation).
