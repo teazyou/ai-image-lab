@@ -70,7 +70,9 @@ it, then show the result.
    of `outputs/`** with a descriptive name (unless the user gave a path); put any
    **intermediate/temp files** (cutouts, masks, experimental generations, uploaded working copies) in
    **`.cache/<job>/`** — one subfolder per source image/job, named after the input (e.g.
-   `.cache/028e69e…/`). **Never** use the system tmp/scratchpad for these, and never leave them loose in
+   `.cache/028e69e…/`). **Within a job folder, prefix every file with a zero-padded incremental
+   creation-order ID** (`001_`, `002_`, …) so the order files were made is visible (e.g.
+   `001_cutout.png`, `002_mask.png`). **Never** use the system tmp/scratchpad for these, and never leave them loose in
    `.cache/` root. Clean a job's `.cache/<job>/` when done (and ComfyUI's own `output/`+`input/` scratch).
    **No `manifest.json`** —
    `outputs/` is ephemeral; if a run's recipe is worth keeping, promote it to `lab/scripts/` (reusable
