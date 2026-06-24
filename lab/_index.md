@@ -5,6 +5,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 
 **Root — kept lean for image content**
 - `.claude/CLAUDE.md` — operating manual & all rules (the brain; read fully every session)
+- `.claude/settings.json` — Claude Code project settings; disables auto-memory (`autoMemoryEnabled: false`, see CLAUDE.md §8)
 - `README.md` — human-facing project intro
 - `inputs/` — drop-in source images (untracked, user-managed; recreate after a clone)
 - `outputs/` — generated results, final images sit at the root (untracked, user-managed)

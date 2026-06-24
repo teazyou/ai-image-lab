@@ -177,3 +177,24 @@ the sub-agent. The sub-agent does the verbose work; you keep the judgment.
 You may reorganize or evolve this structure whenever it improves navigability — that authority is
 yours. When you do, **update this file and the master `lab/_index.md` in the same change** so the repo
 stays internally consistent and self-describing.
+
+## 8. Learned preferences — auto-memory is OFF; record them here
+
+Claude Code's **auto-memory system is disabled** for this repo (`.claude/settings.json` →
+`"autoMemoryEnabled": false`). **Never use the memory store** — don't read from or write to
+`~/.claude/projects/.../memory/`. Instead, whenever you learn a durable user preference or get
+feedback worth keeping across sessions, **append it below as a single one-line bullet** (terse; fold
+the *why* / *how to apply* into the line), then commit. This section is the lab's persistent memory.
+
+- **Stop at the local-first ceiling — don't over-iterate.** For precise multi-element / sub-part
+  masking over busy game renders (keep one limb / a hairband, exclude a *connected* snow/water blob),
+  local rembg / SAM-ViT-B can't isolate cleanly; do one solid attempt, then say so plainly and name
+  what would actually solve it (manual masking in a photo editor, interactive/cloud SAM2) instead of
+  burning iterations on unvalidated output. Whole-subject cutouts + the dim-bg composite still work fine.
+- **Token-budget: split heavy jobs across fresh sessions.** The user deliberately runs heavy
+  multi-step work (e.g. install, *then* the image task) as separate sequential sessions; when asked,
+  hand self-contained copy-paste prompts (one per session) that point at the verified wiki/docs and
+  each end in a committed+pushed state — rather than doing it all in one charged session.
+- **No autostart on boot.** Never create anything that auto-starts on macOS login/boot (LaunchAgents,
+  LaunchDaemons, login items, cron); launch servers on demand and document the manual command (note
+  "No autostart"). Ask first if persistence is ever genuinely needed.

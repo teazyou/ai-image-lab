@@ -1,0 +1,4 @@
+{
+  "$comment": "Auto-memory is disabled for this repo on purpose. Durable preferences/feedback are recorded as one-line bullets in .claude/CLAUDE.md §8 instead of the ~/.claude/projects/.../memory/ store. See CLAUDE.md §8.",
+  "autoMemoryEnabled": false
+}
