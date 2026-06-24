@@ -17,6 +17,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 
 **lab/docs/ — how to operate OUR installed tools (CLI/API, gotchas)**
 - `lab/docs/rembg.md` — rembg: install recipe, model choice, solid-color composite
+- `lab/docs/comfyui.md` — ComfyUI: headless launch flags, HTTP API, client script, installed SDXL inpaint model, measured perf
 
 **lab/wikis/ — world knowledge (concepts, research, tool/model comparisons)**
 - `lab/wikis/background-removal/README.md` — bg-removal model comparison (isnet-anime / birefnet / u2net)
@@ -26,10 +27,11 @@ One line per path (written from the repo root). **Rules and how-to live only in
 **lab/scripts/ — reusable parametrized scripts (`--help` on each)**
 - `lab/scripts/bg_to_color.sh` — remove background, composite subject onto a solid-color canvas
 - `lab/scripts/dim_background.sh` — keep subject, overlay a color over the rest at a chosen opacity (dim, not remove)
+- `lab/scripts/comfyui_run.py` — headless ComfyUI client: upload inputs, submit API-format workflow, poll, save results
 
 **lab/downloads/ — heavy artifacts (content git-ignored)**
 - `lab/downloads/_catalog.md` — catalog of downloaded models/datasets (check before downloading)
 - `lab/downloads/models/` — hand-fetched checkpoints / LoRAs / VAEs / upscalers
-- `lab/downloads/tools/` — per-tool `uv` venvs (e.g. `rembg`)
+- `lab/downloads/tools/` — per-tool `uv` venvs (e.g. `rembg`; `comfyui` = git checkout + venv)
 - `lab/downloads/cache/` — tool-managed caches & auto-downloaded models (`HF_HOME`, `U2NET_HOME`, `uv`)
 - `lab/downloads/datasets/` — datasets

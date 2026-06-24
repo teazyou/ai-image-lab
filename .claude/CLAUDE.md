@@ -142,7 +142,7 @@ what's already there.**
 | Resize / aspect ratio / pad / format | **ImageMagick** (`magick`) | installed; no AI needed |
 | Background removal / cutout | **rembg** *(installed)* | ONNX/CPU on Mac. Model by subject: anime→`isnet-anime`, person→`u2net_human_seg`, photo→`birefnet-general`. Solid-color bg → `lab/scripts/bg_to_color.sh`. Docs: `lab/docs/rembg.md`, wiki: `lab/wikis/background-removal/`. |
 | Upscale (e.g. → 1080p+) | **Real-ESRGAN** | MPS; or `magick` for plain scale |
-| Text→image / img→img / inpaint | **ComfyUI** (MPS) — backbone | piloted via its HTTP/WS API |
+| Text→image / img→img / inpaint / outpaint | **ComfyUI** *(installed, MPS)* — backbone | launch headless + pilot via `lab/scripts/comfyui_run.py`; SDXL inpaint model installed (Flux Fill gated). Docs: `lab/docs/comfyui.md`, wiki: `lab/wikis/comfyui/`. |
 | Flux models | **mflux** (MLX, Apple-native) | fastest Flux path on M-series |
 | Style / character transfer | ComfyUI + IP-Adapter / ControlNet | composable |
 | LoRA **training** | local (ai-toolkit / MLX, slow) or **free** Colab/Kaggle | flag the ~time cost |

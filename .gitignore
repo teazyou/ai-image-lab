@@ -5,6 +5,9 @@ lab/downloads/**
 !lab/downloads/**/
 !lab/downloads/**/.gitkeep
 !lab/downloads/_catalog.md
+# Tool git checkouts (e.g. ComfyUI) are embedded repos; the !**/ rule above would otherwise stage
+# them as broken gitlinks. Re-ignore the whole dir — recreatable, recipe in lab/_installed.md.
+lab/downloads/tools/comfyui/
 
 # Intermediate/temp files (cutouts, masks): ephemeral — keep the folder only.
 .cache/**
