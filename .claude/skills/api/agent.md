@@ -85,6 +85,16 @@ where `{INPUT_FLAG}` is `--image <path>` or `--images-dir <dir>`. Run **every** 
 fails; capture each saved file path, the script's printed **est cost** line, and any error (e.g. a 422
 content-policy block).
 
+**Content-policy fallback → grok (automatic — don't ask).** grok's edit tier is the most permissive. If a
+**google** or **openai** run is **rejected by moderation** (a content-policy / safety block — e.g. a 422, or
+the script returns a refusal / no image), **immediately re-run the SAME request** (same input + prompt) with
+`--model grok` and grok's knobs (`--aspect <rW:rH> --resolution <1k|2k>`, no 4k). Rules:
+- If `-grok` was already selected, its run already covers this → **don't duplicate**.
+- If **both** google and openai are rejected, do the grok fallback **once** (it's the same request), not per model.
+- For a `--images-dir` run, fall back with `--image <file>` for **only** the rejected image(s) (don't re-run the whole folder).
+- Trigger on **moderation rejections only** — for other errors (network/quota/timeout) just report the failure.
+Mark each fallback output in the report as `(fallback from google|openai)` and add its est cost to the total.
+
 ## 6 — exact size normalization (for every saved output file F)
 - `magick identify -format '%wx%h' "F"` → if it already equals the target `W×H`, leave it.
 - Otherwise resize to exactly the target (handles up- **and** down-scale; center-crops aspect overflow):
@@ -99,7 +109,8 @@ content-policy block).
 
 ## Report
 Your final message is the complete report:
-- per model → `SUCCESS <final path> <final W×H>` **or** `FAILURE <error>`;
+- per model → `SUCCESS <final path> <final W×H>` **or** `FAILURE <error>`; if a google/openai moderation
+  rejection triggered the grok fallback, note it and show the grok result;
 - the exact prompt that was sent;
 - the **total est cost**;
 - a final `ls -la outputs/`.
