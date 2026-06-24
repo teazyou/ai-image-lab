@@ -90,6 +90,9 @@ e.g. a 422, or a refusal / no image), **immediately re-run the SAME request for 
 normalize it (step 6) and report it. Trigger on **moderation rejections only** — for network/quota/timeout
 errors just report the failure. Flag the result `(fallback from <google|openai>)` and add its est cost to your total.
 
+**When instructed, do not apply the fallback rule.** If your task prompt says *"Do not apply the fallback rule
+for this image."*, skip the fallback entirely — on a moderation rejection just report the failure (no grok retry).
+
 ## 6 — exact size normalization (for the saved output file F)
 - `magick identify -format '%wx%h' "F"` → if it already equals the target `W×H`, leave it.
 - Otherwise resize to exactly the target (handles up- **and** down-scale; center-crops aspect overflow):

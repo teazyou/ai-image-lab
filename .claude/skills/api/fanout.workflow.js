@@ -1,0 +1,38 @@
+export const meta = {
+  name: 'api-fanout',
+  description: 'fal.ai gen/edit — one Sonnet/high worker per (image × model) cell',
+  phases: [{ title: 'Generate', detail: 'one worker per image × model, on Sonnet/high' }],
+}
+
+// Launched by the /api skill (SKILL.md), once per /api request, in the background.
+// args: [{ argline: string, label?: string, noFallback?: boolean }, ...]
+//   One cell per (image × selected model).
+//   `argline` — a single-cell /api argument string: <one model flag> <option flags> <one image PATH> <prompt>
+//   `noFallback` — true when grok is ALSO a selected model for this image (a google/openai cell must then
+//                  NOT fall back to grok, since that image already has its own grok cell — avoids a duplicate).
+const cells = Array.isArray(args) ? args : []
+if (cells.length === 0) return { error: 'no cells in args' }
+
+phase('Generate')
+log('fanning out ' + cells.length + ' cell(s) on Sonnet/high')
+
+// Each cell → one worker sub-agent, pinned to model: sonnet at effort: high (the whole point of the
+// workflow: the plain Agent tool can't set effort, agent() can). The worker reads agent.md and does the job.
+const results = await parallel(cells.map((c, i) => () => {
+  const noFb = c.noFallback ? '\nDo not apply the fallback rule for this image.' : ''
+  const prompt =
+    'Read the worker spec at `.claude/skills/api/agent.md` and follow it EXACTLY to process this `/api` ' +
+    'argument string:\n' + c.argline + '\n' +
+    'You handle exactly this ONE model on this ONE image. Working dir is the repo root; resolve paths ' +
+    'relative to it. Execute every step yourself.' + noFb + '\n' +
+    'Report only your final result, once you are done.'
+  return agent(prompt, {
+    model: 'sonnet',
+    effort: 'high',
+    agentType: 'claude',
+    label: c.label || ('cell ' + (i + 1)),
+    phase: 'Generate',
+  })
+}))
+
+return results

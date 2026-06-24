@@ -6,8 +6,9 @@ One line per path (written from the repo root). **Rules and how-to live only in
 **Root — kept lean for image content**
 - `.claude/CLAUDE.md` — operating manual & all rules (the brain; read fully every session)
 - `.claude/settings.json` — Claude Code project settings; disables auto-memory (`autoMemoryEnabled: false`, see CLAUDE.md §8)
-- `.claude/skills/api/SKILL.md` — `/api` skill (orchestrator): pre-flight, then fan out one background worker per image×model — hands each its params (model/path/prompt+opts) + the agent.md path (chainable via "same params: …"); relays each result, never views/edits images. PAID → `disable-model-invocation` (explicit `/api` only)
-- `.claude/skills/api/agent.md` — `/api` worker spec for ONE (model×image) cell: parse args → fal gen/edit (one of Grok/Google/OpenAI) → normalize to exact size+ratio → report once; self-falls back to grok if google/openai reject on content policy. Self-contained (reads no docs)
+- `.claude/skills/api/SKILL.md` — `/api` skill (orchestrator): pre-flight, build the (image×model) cell list, then launch a background dynamic Workflow (`fanout.workflow.js`) that runs one Sonnet/high worker per cell; chainable via "same params: …"; relays results, never views/edits images. PAID → `disable-model-invocation` (explicit `/api` only)
+- `.claude/skills/api/agent.md` — `/api` worker spec for ONE (model×image) cell: parse args → fal gen/edit (one of Grok/Google/OpenAI) → normalize to exact size+ratio → report once; self-falls back to grok if google/openai reject on content policy (unless told not to for that image). Self-contained (reads no docs)
+- `.claude/skills/api/fanout.workflow.js` — `/api` dynamic-Workflow script: fans out one sub-agent per (image×model) cell on `model: sonnet`/`effort: high`, each reading `agent.md`; adds the no-fallback line for cells where grok is also selected. Cells passed in via Workflow `args`
 - `.claude/commands/api-v1.md` — legacy `/api-v1`: the pre-skill single-shot version of `/api` (no orchestrator/background/chaining). Kept for reference; superseded by the `api` skill
 - `README.md` — human-facing project intro
 - `.env` — secrets (git-ignored); holds `FAL_KEY` for fal.ai. Template: `.env.example` (tracked)

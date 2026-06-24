@@ -7,10 +7,11 @@ disable-model-invocation: true
 
 # /api — orchestrate fal.ai image gen/edit, one background worker per (image × model)
 
-You are the **orchestrator** for `/api`. Your only job: fan a request out into **background worker**
-sub-agents — **one per (image × selected model)** — that do the real work (each follows the bundled
-`agent.md`), then stay free so the user can fire more requests while workers run. **You never call the
-API, view/resize/QA any image, finalize prompts, or read `agent.md` yourself** — the workers own that.
+You are the **orchestrator** for `/api`. Your only job: fan a request out into a **background dynamic
+Workflow** that spawns **one worker sub-agent per (image × selected model)** — on Sonnet at high effort,
+each following the bundled `agent.md` — then stay free so the user can fire more requests while it runs.
+**You never call the API, view/resize/QA any image, finalize prompts, or read `agent.md` yourself** — the
+workers own that. (This skill authorizes the Workflow tool; see step 4.)
 
 Raw arguments: `$ARGUMENTS`
 
@@ -31,31 +32,31 @@ Keep your own output to one terse line per action. Never view any pixels. Don't 
      `[that file]`; else ask for a path (or to drop one in `inputs/`); don't spawn yet.
    - **Prompt** = the tokens after the input (or **ALL** positionals if the input came from an attachment).
      Must be non-empty → else ask; don't spawn yet.
-3. **Fan out — one worker per (image × selected model).** Total workers = **images × models** (1 model ×
-   5 images = 5; 2 models × 5 images = 10). For each (file, model) cell build a single-cell `/api` argument
-   string `ARGS` = `<that ONE model flag> <-reprompt/-preview/-size/-ratio as given> <that ONE image PATH>
-   <prompt>`. Remember this call's **flag set** (models, `-reprompt`, `-preview`, `-size`, `-ratio`) for
-   later "same params" follow-ups.
-4. **Spawn every cell as a background worker** (fire them in parallel) — Agent tool, `subagent_type: claude`,
-   **same model as you**, `run_in_background: true`. For each cell, hand the worker its **parameters** (the
-   single-cell `ARGS`: one model flag + the option flags + the one image PATH + the prompt) and the **path
-   to the spec**, with this prompt:
-   > Read the worker spec at `.claude/skills/api/agent.md` (repo-root relative; absolute equivalent
-   > `${CLAUDE_SKILL_DIR}/agent.md`) and follow it exactly to process this `/api` argument string:
-   > `ARGS`. You handle exactly this ONE model on this ONE image. Working dir is the repo root. Execute
-   > every step yourself, and **report only your final result, once you're done**.
-
-   That's all you pass each worker — params + spec path. Everything else (incl. the grok content-policy
-   fallback) lives in `agent.md`; you neither know nor manage it.
-5. **Acknowledge in one line** with the count, e.g. `▶ launched 10 workers — {google,openai} × 5 images: "Make the background black"`.
+3. **Build the cell list — one cell per (image × selected model).** Total cells = **images × models** (1
+   model × 5 images = 5; 2 models × 5 images = 10). Each cell is an object `{ argline, label, noFallback }`:
+   - `argline` — a single-cell `/api` argument string: `<that ONE model flag> <-reprompt/-preview/-size/-ratio
+     as given> <that ONE image PATH> <prompt>`.
+   - `label` — `"<model>·<image-stem>"` (shown in the progress display).
+   - `noFallback` — **true** iff `-grok` is selected AND this cell's model is google/openai (that image already
+     has its own grok cell, so the worker must not also fall back to grok — avoids a duplicate); else **false**.
+   Remember this call's **flag set** (models, `-reprompt`, `-preview`, `-size`, `-ratio`) for later "same
+   params" follow-ups.
+4. **Launch a background dynamic Workflow** to run the cells — this skill **authorizes the Workflow tool**.
+   Call `Workflow({ scriptPath: ".claude/skills/api/fanout.workflow.js", args: <the cell list as a real JSON
+   array> })`. The bundled script fans out **one sub-agent per cell on `model: sonnet` at `effort: high`** (set
+   in the script — Sonnet/high is plenty for this gen/edit + resize work); each sub-agent reads `agent.md`,
+   processes its `argline`, and — when the cell's `noFallback` is true — is told `Do not apply the fallback
+   rule for this image.` The Workflow runs in the **background** and returns immediately: **one Workflow per
+   `/api` request**, so you stay free to chain.
+5. **Acknowledge in one line**, e.g. `▶ launched workflow — 10 workers ({google,openai} × 5 images): "Make the background black"`.
    Write nothing else.
 6. **Stay ready & chain.** Treat any follow-up that names an input + prompt as another job — including
    `same params: <input> <prompt>` / `same param: …`, which **reuses the previous call's flag set** (a
-   follow-up may still override individual flags). Re-run steps 2–5 for each; all workers run **concurrently**.
-   Plain non-job messages you just answer normally.
-7. **Relay, don't QA.** Each worker reports **once, when it's done**; as those results land, relay them
-   **compactly** (one small row per cell — image · model · saved path · dims · cost, plus any fallback the
-   worker noted; batch them rather than narrating each). Add no QA, previews, or commentary of your own.
+   follow-up may still override individual flags). Re-run steps 2–5 for each — each fires its own background
+   Workflow; they run **concurrently**. Plain non-job messages you just answer normally.
+7. **Relay, don't QA.** When a Workflow finishes, the harness notifies you with its aggregated results —
+   relay them **compactly** (one small row per cell — image · model · saved path · dims · cost, plus any
+   fallback noted; batch them rather than narrating each). Add no QA, previews, or commentary of your own.
    (`outputs/` is git-ignored ⇒ nothing to commit.)
 
 That is the entire orchestrator job. The worker's full pipeline lives in `agent.md` — do not inline it.
