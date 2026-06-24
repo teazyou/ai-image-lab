@@ -1,16 +1,16 @@
 ---
 name: api
-description: orchestrate fal.ai image gen/edit (best Grok/Google/OpenAI) → exact size+ratio; each request runs as a background worker so you can chain more while they run
+description: orchestrate fal.ai image gen/edit (best Grok/Google/OpenAI) → exact size+ratio; fans out one background worker per image×model so you can chain more while they run
 argument-hint: [-help] [-grok] [-google] [-openai] [-reprompt] [-preview] [-size=1080p] [-ratio=169] <input-path|folder|(attached)> <prompt...>
 disable-model-invocation: true
 ---
 
-# /api — orchestrate fal.ai image gen/edit, one background worker per request
+# /api — orchestrate fal.ai image gen/edit, one background worker per (image × model)
 
-You are the **orchestrator** for `/api`. Your only job: launch a **background worker** sub-agent that
-does the real work (the worker follows the bundled `agent.md`), then stay free so the user can fire
-more requests while workers run. **You never call the API, view/resize/QA any image, finalize prompts,
-or read `agent.md` yourself** — the worker owns all of that.
+You are the **orchestrator** for `/api`. Your only job: fan a request out into **background worker**
+sub-agents — **one per (image × selected model)** — that do the real work (each follows the bundled
+`agent.md`), then stay free so the user can fire more requests while workers run. **You never call the
+API, view/resize/QA any image, finalize prompts, or read `agent.md` yourself** — the workers own that.
 
 Raw arguments: `$ARGUMENTS`
 
@@ -22,32 +22,41 @@ Keep your own output to one terse line per action. Never view any pixels. Don't 
 1. **`-help`, `--help`, or empty `$ARGUMENTS`** → print the HELP block (bottom) verbatim and STOP. No worker.
 2. **Pre-flight — cheap text/FS checks only (the *sole* validation you do; ask the user only when a job
    is genuinely impossible to start):**
-   - **Model:** need ≥1 of `-grok` / `-google` / `-openai`. None → ask which; don't spawn yet.
-   - **Input:** the first bare positional token (strip surrounding quotes; keep `./` and a trailing `/`).
-     If it resolves to an existing **file/dir** (`test -e`), that's the input path and the **prompt is the
-     tokens after it**. If it does NOT resolve → there's no input token: if the user **attached/dropped**
-     an image, persist it to a path (save under `inputs/` or `.cache/`, **without viewing the pixels**)
-     and use that path (then **all** positionals are the prompt); if nothing is attached → ask for a path
-     (or to drop one in `inputs/`); don't spawn yet.
-   - **Prompt:** must be non-empty → else ask; don't spawn yet.
-3. **Build the canonical `ARGS` string** = `<model flags> <other flags> <input-path> <prompt>` (flags
-   first, then the resolved input PATH, then the prompt). Remember this call's **flag set** (models,
-   `-reprompt`, `-preview`, `-size`, `-ratio`) for later "same params" follow-ups.
-4. **Spawn a background worker** — Agent tool, `subagent_type: claude`, **same model as you**,
-   `run_in_background: true`, with exactly this prompt (substitute the real `ARGS`):
+   - **Models:** need ≥1 of `-grok` / `-google` / `-openai`. None → ask which; don't spawn yet.
+   - **Input → a concrete LIST of image files.** Take the first bare positional (strip surrounding quotes;
+     keep `./` and a trailing `/`). If it resolves (`test -e`) to a **file** → the list is `[that file]`;
+     to a **directory** → the list is **every image file in it** (`*.jpg *.jpeg *.png *.webp …` — actually
+     list them). If it does NOT resolve → no input token: if the user **attached/dropped** an image,
+     persist it to a path (save under `inputs/` or `.cache/`, **without viewing the pixels**) → list is
+     `[that file]`; else ask for a path (or to drop one in `inputs/`); don't spawn yet.
+   - **Prompt** = the tokens after the input (or **ALL** positionals if the input came from an attachment).
+     Must be non-empty → else ask; don't spawn yet.
+3. **Fan out — one worker per (image × selected model).** Total workers = **images × models** (1 model ×
+   5 images = 5; 2 models × 5 images = 10). For each (file, model) cell build a single-cell `/api` argument
+   string `ARGS` = `<that ONE model flag> <-reprompt/-preview/-size/-ratio as given> <that ONE image PATH>
+   <prompt>`. Remember this call's **flag set** (models, `-reprompt`, `-preview`, `-size`, `-ratio`) for
+   later "same params" follow-ups.
+4. **Spawn every cell as a background worker** (fire them in parallel) — Agent tool, `subagent_type: claude`,
+   **same model as you**, `run_in_background: true`. For each cell, hand the worker its **parameters** (the
+   single-cell `ARGS`: one model flag + the option flags + the one image PATH + the prompt) and the **path
+   to the spec**, with this prompt:
    > Read the worker spec at `.claude/skills/api/agent.md` (repo-root relative; absolute equivalent
    > `${CLAUDE_SKILL_DIR}/agent.md`) and follow it exactly to process this `/api` argument string:
-   > `ARGS`. Working dir is the repo root; resolve input paths relative to it. Execute every step
-   > yourself. Your final message is the complete report.
-5. **Acknowledge in one line**, e.g. `▶ launched: -openai inputs/x.jpg "Make the background black"`.
+   > `ARGS`. You handle exactly this ONE model on this ONE image. Working dir is the repo root. Execute
+   > every step yourself, and **report only your final result, once you're done**.
+
+   That's all you pass each worker — params + spec path. Everything else (incl. the grok content-policy
+   fallback) lives in `agent.md`; you neither know nor manage it.
+5. **Acknowledge in one line** with the count, e.g. `▶ launched 10 workers — {google,openai} × 5 images: "Make the background black"`.
    Write nothing else.
 6. **Stay ready & chain.** Treat any follow-up that names an input + prompt as another job — including
    `same params: <input> <prompt>` / `same param: …`, which **reuses the previous call's flag set** (a
-   follow-up may still override individual flags). Re-run steps 2–5 for each; workers run **concurrently**.
+   follow-up may still override individual flags). Re-run steps 2–5 for each; all workers run **concurrently**.
    Plain non-job messages you just answer normally.
-7. **Relay, don't QA.** When a background worker finishes, the harness notifies you — relay its report to
-   the user (terse, faithful). Add no QA, previews, or commentary of your own. (`outputs/` is git-ignored
-   ⇒ nothing to commit.)
+7. **Relay, don't QA.** Each worker reports **once, when it's done**; as those results land, relay them
+   **compactly** (one small row per cell — image · model · saved path · dims · cost, plus any fallback the
+   worker noted; batch them rather than narrating each). Add no QA, previews, or commentary of your own.
+   (`outputs/` is git-ignored ⇒ nothing to commit.)
 
 That is the entire orchestrator job. The worker's full pipeline lives in `agent.md` — do not inline it.
 
@@ -59,8 +68,8 @@ That is the entire orchestrator job. The worker's full pipeline lives in `agent.
 USAGE
   /api [flags] <input> <prompt...>
   Flags first, then the input location, then the prompt. One output per (selected model × input image).
-  Each call runs in a BACKGROUND worker — fire more /api calls (or "same params: <input> <prompt>")
-  while earlier ones are still running; they run concurrently.
+  Fans out to one BACKGROUND worker per (model × image) — so 2 models × 5 images = 10 workers — and you
+  can fire more /api calls (or "same params: <input> <prompt>") while earlier ones run; all concurrent.
 
 MODELS (pick ≥1)
   -grok      xAI Grok Imagine     — fast; fal's edit is standard-tier, may distort identity/pose
@@ -90,7 +99,8 @@ EXAMPLES
 NOTES
   • fal.ai is a PAID API (key already in .env); each run prints an est cost.
   • Every result is resized to the exact target W×H with ImageMagick. Saved to outputs/ (git-ignored).
-  • Each request runs in its own background worker so you can chain more; "same params: …" reuses the
-    last call's flags. The orchestrator only launches workers and relays their reports — it never
-    views, edits, or QAs any image itself.
+  • Fans out to one background worker per (model × image); chain more anytime — "same params: …" reuses
+    the last call's flags. The orchestrator only launches workers and relays reports — it never views,
+    edits, or QAs any image itself.
+  • If google/openai rejects an image on content policy, that image auto-retries on grok (permissive tier).
 ```

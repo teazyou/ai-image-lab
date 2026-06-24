@@ -1,17 +1,18 @@
-# /api worker — generate/edit image(s) via fal.ai, then normalize to an exact size+ratio
+# /api worker — generate/edit ONE image with ONE model via fal.ai, then normalize to an exact size+ratio
 
-You were handed a `/api`-style **argument string** (it appears in your task prompt): flags first, then
-an input PATH, then a prompt. Run the whole job yourself: parse the arguments, call the selected
-model(s), save to `outputs/`, resize each result to the exact target, optionally QA, then report.
+You were handed a `/api`-style **argument string** (it appears in your task prompt): exactly **one model
+flag**, then a single input image **PATH**, then a prompt. Run that one job yourself: parse the arguments,
+call that one model on that one image, save to `outputs/`, resize the result to the exact target, optionally
+QA, then report. (The orchestrator fans a request out into one worker per image × model — you are one cell.)
 
 **Do everything from THIS file alone** — don't read `lab/docs/`, `lab/wikis/`, the script source, or
 `CLAUDE.md`; every fact you need is here and verified. Open another doc only if a step here fails in a
 way these instructions don't explain. Execute every step directly. Working dir = repo root; resolve
 paths relative to it.
 
-**What it does:** sends the input image(s) + a prompt to the best image model of each selected brand on
-fal.ai (a **PAID** API — `FAL_KEY` is already in repo-root `.env`), saves results to `outputs/`, then
-resizes each to the exact target pixel size. One output per **(selected model × input image)**.
+**What it does:** sends the input image + a prompt to the selected model on fal.ai (a **PAID** API —
+`FAL_KEY` is already in repo-root `.env`), saves the result to `outputs/`, then resizes it to the exact
+target pixel size.
 
 ## Facts you need (installed + verified — do not re-check)
 - Run the client with: `lab/downloads/tools/fal/.venv/bin/python lab/scripts/fal_run.py …`
@@ -23,16 +24,15 @@ resizes each to the exact target pixel size. One output per **(selected model ×
   - `-openai` → `--model openai` · GPT Image 2. Knobs: `--size <enum>` `--quality high|medium|low`
     (it does **NOT** accept aspect/resolution; native output ≈1 MP, so it is usually **upscaled** to
     the target — expect softer detail).
-- Input flags: `--image PATH` (a single file) **or** `--images-dir DIR` (a folder → edits every image).
+- Input flag: `--image PATH` (a single file — you always edit exactly one).
 - Prompt flag: `--prompt "TEXT"`. **Mode auto-detects to edit** when an image is supplied.
-- The script silently drops any knob a model doesn't support, validates inputs, and runs each job
-  independently (one failure doesn't kill the batch). It saves to `outputs/` as
-  `<brand>__<imgstem>__<prompt-slug>__<HHMMSS>.<ext>` and never overwrites. Ext: google/openai→`png`, grok→`jpeg`.
+- The script silently drops any knob a model doesn't support and validates inputs. It saves to `outputs/`
+  as `<brand>__<imgstem>__<prompt-slug>__<HHMMSS>.<ext>` and never overwrites. Ext: google/openai→`png`, grok→`jpeg`.
 - `magick` (ImageMagick) is installed for the resize step.
 
 ## 1 — parse the argument string
 Tokens beginning with `-` are flags; everything else is positional, in order.
-- `-grok` / `-google` / `-openai` — model(s) to call (≥1 will be present).
+- exactly **one** of `-grok` / `-google` / `-openai` — the single model you call.
 - `-reprompt` — clarify the prompt before sending (step 3). If **absent**, send the prompt **verbatim —
   exact literal copy/paste, change nothing** (keep typos, casing, punctuation).
 - `-preview` — you ARE allowed to view images this run (steps 4 & 7). If **absent**, you are **forbidden
@@ -42,9 +42,9 @@ Tokens beginning with `-` are flags; everything else is positional, in order.
   Value = the digits before `p`.
 - `-ratio=VALUE` — aspect, colon removed. **Default `169`.** Decode: `169`=16:9 · `916`=9:16 · `11`=1:1 ·
   `43`=4:3 · `34`=3:4 · `32`=3:2 · `23`=2:3 · `219`=21:9. If unlisted, split into the intended `W:H`.
-- **Input** = the first bare positional. A **file** → `--image <path>`; a **dir** → `--images-dir <path>`.
-  **Prompt** = the tokens after it, joined into one string. (If the first positional doesn't resolve to a
-  real path, treat all positionals as the prompt and report that no input was found.)
+- **Input** = the first bare positional: a single image **file** → `--image <path>`. **Prompt** = the
+  tokens after it, joined into one string. (You always get one concrete image path from the orchestrator;
+  if it doesn't resolve to a real file, report that and stop.)
 
 ## 2 — compute the target W×H and per-brand knobs
 From short-side `s` (e.g. 1080) and ratio `rW:rH`:
@@ -75,27 +75,22 @@ so the shell never has to escape quotes/newlines.
 `magick "INPUT" -resize 640x "$(mktemp /tmp/api_in.XXXXXX.png)"` then read that once to understand the
 subject. **Otherwise skip — never view the input.**
 
-## 5 — run the API calls (capture all logs)
-Run each selected model (edit mode is automatic), substituting the step-1/2 values:
-- google: `lab/downloads/tools/fal/.venv/bin/python lab/scripts/fal_run.py --model google {INPUT_FLAG} --prompt "$(cat "$PF")" --aspect <rW:rH> --resolution <1k|2k|4k>`
-- grok:   `… --model grok   {INPUT_FLAG} --prompt "$(cat "$PF")" --aspect <rW:rH> --resolution <1k|2k>`
-- openai: `… --model openai {INPUT_FLAG} --prompt "$(cat "$PF")" --size <enum> --quality high`  (drop `--size` for a nonstandard ratio)
+## 5 — run the API call (capture all logs)
+Run your one model (edit mode is automatic), substituting the step-1/2 values — use the line for your model:
+- google: `lab/downloads/tools/fal/.venv/bin/python lab/scripts/fal_run.py --model google --image <path> --prompt "$(cat "$PF")" --aspect <rW:rH> --resolution <1k|2k|4k>`
+- grok:   `… --model grok   --image <path> --prompt "$(cat "$PF")" --aspect <rW:rH> --resolution <1k|2k>`
+- openai: `… --model openai --image <path> --prompt "$(cat "$PF")" --size <enum> --quality high`  (drop `--size` for a nonstandard ratio)
 
-where `{INPUT_FLAG}` is `--image <path>` or `--images-dir <dir>`. Run **every** selected model even if one
-fails; capture each saved file path, the script's printed **est cost** line, and any error (e.g. a 422
-content-policy block).
+Capture the saved file path, the script's printed **est cost** line, and any error (e.g. a 422 content-policy block).
 
-**Content-policy fallback → grok (automatic — don't ask).** grok's edit tier is the most permissive. If a
-**google** or **openai** run is **rejected by moderation** (a content-policy / safety block — e.g. a 422, or
-the script returns a refusal / no image), **immediately re-run the SAME request** (same input + prompt) with
-`--model grok` and grok's knobs (`--aspect <rW:rH> --resolution <1k|2k>`, no 4k). Rules:
-- If `-grok` was already selected, its run already covers this → **don't duplicate**.
-- If **both** google and openai are rejected, do the grok fallback **once** (it's the same request), not per model.
-- For a `--images-dir` run, fall back with `--image <file>` for **only** the rejected image(s) (don't re-run the whole folder).
-- Trigger on **moderation rejections only** — for other errors (network/quota/timeout) just report the failure.
-Mark each fallback output in the report as `(fallback from google|openai)` and add its est cost to the total.
+**Content-policy fallback → grok (automatic — don't ask).** grok's edit tier is the most permissive. If your
+model is **google** or **openai** and the run is **rejected by moderation** (a content-policy / safety block —
+e.g. a 422, or a refusal / no image), **immediately re-run the SAME request for this image** with
+`… --model grok --image <path> --prompt "$(cat "$PF")" --aspect <rW:rH> --resolution <1k|2k>` (no 4k), then
+normalize it (step 6) and report it. Trigger on **moderation rejections only** — for network/quota/timeout
+errors just report the failure. Flag the result `(fallback from <google|openai>)` and add its est cost to your total.
 
-## 6 — exact size normalization (for every saved output file F)
+## 6 — exact size normalization (for the saved output file F)
 - `magick identify -format '%wx%h' "F"` → if it already equals the target `W×H`, leave it.
 - Otherwise resize to exactly the target (handles up- **and** down-scale; center-crops aspect overflow):
   `magick "F" -resize "WxH^" -gravity center -extent "WxH" "F"`
@@ -103,15 +98,14 @@ Mark each fallback output in the report as `(fallback from google|openai)` and a
   `-resize "1920x1080^" -gravity center -extent "1920x1080"`.
 
 ## 7 — QA (ONLY if `-preview`)
-- **`-preview`:** view a 640px-wide downscaled copy of each final output and judge it against the prompt;
-  if one is poor, you may re-run that single model once with a clarified prompt, then re-normalize (step 6).
+- **`-preview`:** view a 640px-wide downscaled copy of the final output and judge it against the prompt;
+  if it's poor, you may re-run your model once with a clarified prompt, then re-normalize (step 6).
 - **Not `-preview`:** never view outputs.
 
 ## Report
-Your final message is the complete report:
-- per model → `SUCCESS <final path> <final W×H>` **or** `FAILURE <error>`; if a google/openai moderation
-  rejection triggered the grok fallback, note it and show the grok result;
-- the exact prompt that was sent;
-- the **total est cost**;
-- a final `ls -la outputs/`.
-Then clean up your scratch files (`$PF`, any `/tmp/api_in.*`).
+Work silently, then **report only once — your final message, when the job is fully done** (no progress
+chatter). It is the result for this one (model, image):
+- `SUCCESS <final path> <final W×H>` **or** `FAILURE <error>`; if a content-policy rejection triggered the
+  grok fallback, say so and give the grok result `(fallback from <google|openai>)`;
+- the exact prompt that was sent and the **est cost** (plus the fallback's cost, if any).
+Then clean up your scratch files (`$PF`, any `/tmp/api_in.*`). (The orchestrator aggregates across all cells.)
