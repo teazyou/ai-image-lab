@@ -97,4 +97,24 @@ Model loads **directly to GPU** (MPS confirmed). First prompt pays a one-time ch
   Then drop now-isolated strays (connected-components area-threshold) and compose with
   `lab/scripts/compose_wallpaper.sh` (bottom feather hides the residual edge naturally).
 
+## Text→image: anime character design-transfer + posing (IP-Adapter + ControlNet OpenPose)
+
+Stack to **generate a full-body anime character that carries a reference image's design in a new pose.**
+World-knowledge (picks/weights/why): [lab/wikis/anime-character-gen/](../wikis/anime-character-gen/README.md). This = our working setup.
+
+- **Custom nodes** (`custom_nodes/`): `ComfyUI_IPAdapter_plus` (cubiq) · `comfyui_controlnet_aux` (Fannovel16). Install/uninstall: see `lab/_installed.md`.
+- **Models** (catalog): checkpoints/`Illustrious-XL-v2.0` · ipadapter/`ip-adapter-plus_sdxl_vit-h` · clip_vision/`CLIP-ViT-H-14-laion2B-s32B-b79K` · controlnet/`controlnet-openpose-sdxl-xinsir`.
+
+**Graph (API format):** `CheckpointLoaderSimple`→2×`CLIPTextEncode`. `LoadImage(ref)`+`IPAdapterModelLoader`+`CLIPVisionLoader`→`IPAdapterAdvanced` (patches **MODEL**; weight 0.7–0.85, weight_type `linear`, embeds_scaling `V only`). `LoadImage(pose skeleton)`→`ControlNetApplyAdvanced` (patches +/− **CONDITIONING**; control_net=xinsir, strength 0.85–0.9, start 0, end 0.8–0.85). →`KSampler` (model from IPAdapter; pos/neg from ControlNet; **euler_ancestral / normal / cfg 4.5–5 / 30 steps**)→`VAEDecode`→`SaveImage`. SDXL portrait **832×1216**.
+
+**DWPose (extract a skeleton from a pose ref):** `DWPreprocessor` — set **`scale_stick_for_xinsr_cn=enable`** (xinsir needs thick lines) + resolution 1024. Runtime `CUDAExecutionProvider` warning is harmless (uses CoreML). First use auto-downloads yolox+dwpose (~336 MB) to `comfyui_controlnet_aux/ckpts/`. To reuse a **pre-made** skeleton, feed it straight to `ControlNetApplyAdvanced.image` (skip the preprocessor). Reframe a skeleton to a portrait canvas with `magick … -trim -resize x<H> -gravity center -extent 832x1216`.
+
+**Gotchas (this stack):**
+- **NoobAI-XL v-pred = BROKEN on this MPS install.** `ModelSamplingDiscrete v_prediction` (zsnr **on and off**) + `RescaleCFG`, euler/euler_a → pure noise / incoherent shards. Root cause unconfirmed (suspect `--force-fp16` × v-pred). **Use eps-prediction checkpoints (Illustrious) on MPS;** revisit v-pred later with `--fp32` / a v-pred-aware sampler.
+- **IP-Adapter center-crops the ref to a square** → pre-pad a tall portrait ref to a square (black bars) first (`magick in.jpg -background black -gravity center -extent SxS out.png`), else the head/ears fall outside the embedding.
+- IP-Adapter likeness ≠ identity: it transfers design/palette, **not the exact face/art-style** — output is recognizably-the-design but a re-render, not the original artwork.
+- `output/` + `input/` here are ComfyUI scratch — clean them; real results go via `comfyui_run.py --out` into `.cache/<job>/` or `outputs/`.
+
+**Perf (M4 Max, warm):** 832×1216, batch 4, 30 steps euler_a, checkpoint+IP-Adapter+ControlNet ≈ **6 min/batch** (~1.5 min/img). First batch pays one-time loads (checkpoint 6.9 GB + CLIP-vision 2.4 GB + ControlNet 2.4 GB).
+
 *Last updated: 2026-06-25*

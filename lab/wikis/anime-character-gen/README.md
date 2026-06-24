@@ -15,7 +15,7 @@ framing + a dynamic pose. Then cut out (rembg `isnet-anime`) and composite on pu
 | Pick | Repo | pred | Note |
 |------|------|------|------|
 | **Illustrious-XL v2.0** (used) | `OnomaAIResearch/Illustrious-XL-v2.0` (6.94 GB) | eps | cleanest anatomy, best NL+booru, broadest IP-Adapter/ControlNet/LoRA ecosystem → most reliable when stacking conditioners |
-| NoobAI-XL V-Pred 1.0 (fallback) | `Laxhar/noobai-XL-Vpred-1.0` (7.11 GB) | **v-pred** | strongest native HDR/ember drama, but needs `ModelSamplingDiscrete=v_prediction`(+zsnr) node and is fussier with ControlNet — switch to this only if mood is too flat |
+| NoobAI-XL V-Pred 1.0 | `Laxhar/noobai-XL-Vpred-1.0` (7.11 GB) | **v-pred** | strongest native HDR/ember drama *on paper*, BUT **produced pure noise on this MPS install** (`ModelSamplingDiscrete=v_prediction` zsnr on & off, +`RescaleCFG`, euler/euler_a). **Avoid v-pred on MPS** until root-caused — use the eps path. See [docs/comfyui.md](../../docs/comfyui.md). |
 | Animagine XL 4.0 | `cagliostrolab/animagine-xl-4.0` (6.94 GB) | eps | flatter "official anime"; weaker for semi-real |
 
 - **Prompting = Danbooru tags first:** `masterpiece, best quality, newest, absurdres, <subject tags>`.
@@ -55,4 +55,9 @@ framing + a dynamic pose. Then cut out (rembg `isnet-anime`) and composite on pu
 `LoadImage(pose) → DWPreprocessor → ControlNetApplyAdvanced(+,−, CN model)` → `KSampler(model from IPAdapter) → VAEDecode → SaveImage`.
 IP-Adapter patches the MODEL; ControlNet patches the CONDITIONING — both feed one KSampler.
 
-*Last verified: 2026-06-25 (URLs curl-checked ungated; perf TBD after first run).*
+## Measured on this machine (M4 Max, 2026-06-25)
+- **Illustrious eps path works** and is reliable: 832×1216, batch 4, 30 steps euler_a, +IP-Adapter +ControlNet ≈ **6 min/batch warm** (~1.5 min/img).
+- **NoobAI v-pred → noise** (see checkpoint table) — eps only on MPS.
+- IP-Adapter at 0.7–0.85 carries hair-colour/ears/outfit/palette but renders a **new face in the model's style** — good for "her design", not for "the identical artwork". For *identical* subject, don't generate the figure: keep the original pixels and only outpaint what's outside its frame.
+
+*Last verified: 2026-06-25 (URLs curl-checked ungated; perf measured).*

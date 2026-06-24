@@ -68,7 +68,11 @@ it, then show the result.
 6. **Execute** — pilot the tool via CLI / HTTP API / a `lab/scripts/` script; first check `lab/docs/<tool>`
    for its working commands, API shapes, and known gotchas. Write the **final result(s) to the root
    of `outputs/`** with a descriptive name (unless the user gave a path); put any
-   **intermediate/temp files** (cutouts, masks) in `.cache/`. **No `manifest.json`** —
+   **intermediate/temp files** (cutouts, masks, experimental generations, uploaded working copies) in
+   **`.cache/<job>/`** — one subfolder per source image/job, named after the input (e.g.
+   `.cache/028e69e…/`). **Never** use the system tmp/scratchpad for these, and never leave them loose in
+   `.cache/` root. Clean a job's `.cache/<job>/` when done (and ComfyUI's own `output/`+`input/` scratch).
+   **No `manifest.json`** —
    `outputs/` is ephemeral; if a run's recipe is worth keeping, promote it to `lab/scripts/` (reusable
    command) or `lab/docs/` (process notes). Never modify the input file in place.
    **Run heavy/long modification runs in a sub-agent and QA its output yourself (§6).**

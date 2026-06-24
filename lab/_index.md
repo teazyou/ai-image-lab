@@ -9,7 +9,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `README.md` — human-facing project intro
 - `inputs/` — drop-in source images (untracked, user-managed; recreate after a clone)
 - `outputs/` — generated results, final images sit at the root (untracked, user-managed)
-- `.cache/` — intermediate/temp files (cutouts, masks); git-ignored, `.gitkeep` only
+- `.cache/` — temp/intermediate assets (cutouts, masks, experimental gens, working copies), **one subfolder per source image** (`.cache/<job>/`); git-ignored, `.gitkeep` only
 - `lab/` — the AI workspace; everything below lives here
 
 **lab/ — workspace root**
