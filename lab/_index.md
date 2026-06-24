@@ -6,7 +6,8 @@ One line per path (written from the repo root). **Rules and how-to live only in
 **Root — kept lean for image content**
 - `.claude/CLAUDE.md` — operating manual & all rules (the brain; read fully every session)
 - `.claude/settings.json` — Claude Code project settings; disables auto-memory (`autoMemoryEnabled: false`, see CLAUDE.md §8)
-- `.claude/commands/api.md` — `/api` slash command: fal.ai gen/edit with best Grok/Google/OpenAI model → normalize to size+ratio. Self-contained (reads no docs)
+- `.claude/skills/api/SKILL.md` — `/api` skill (orchestrator): pre-flight + spawn a background worker per request (chainable via "same params: …"); relays reports, never views/edits images. PAID → `disable-model-invocation` (explicit `/api` only)
+- `.claude/skills/api/agent.md` — `/api` worker spec a sub-agent follows: parse args → fal gen/edit (Grok/Google/OpenAI) → normalize to exact size+ratio → report. Self-contained (reads no docs)
 - `README.md` — human-facing project intro
 - `.env` — secrets (git-ignored); holds `FAL_KEY` for fal.ai. Template: `.env.example` (tracked)
 - `.env.example` — tracked template for `.env`
