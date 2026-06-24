@@ -17,8 +17,10 @@ Raw arguments: `$ARGUMENTS`
 
 ## What the orchestrator does (ONLY this)
 
-Keep your own output to one terse line per action. Never view any pixels. Don't read `agent.md`,
-`lab/docs/`, `lab/wikis/`, or `CLAUDE.md`.
+Keep your own output to one terse line per action. Never view any pixels. **Do NOT read `agent.md` or
+`fanout.workflow.js`** — both are already prepared and complete; you only ever pass their *path* (and the
+`args`), never their contents, so opening them just burns tokens. Likewise don't read `lab/docs/`,
+`lab/wikis/`, or `CLAUDE.md`. Open any of these **only if** launching the Workflow throws an error you must diagnose.
 
 1. **`-help`, `--help`, or empty `$ARGUMENTS`** → print the HELP block (bottom) verbatim and STOP. No worker.
 2. **Pre-flight — cheap text/FS checks only (the *sole* validation you do; ask the user only when a job
@@ -43,7 +45,8 @@ Keep your own output to one terse line per action. Never view any pixels. Don't 
    params" follow-ups.
 4. **Launch a background dynamic Workflow** to run the cells — this skill **authorizes the Workflow tool**.
    Call `Workflow({ scriptPath: ".claude/skills/api/fanout.workflow.js", args: <the cell list as a real JSON
-   array> })`. The bundled script fans out **one sub-agent per cell on `model: sonnet` at `effort: high`** (set
+   array> })` — **pass the path as-is; do NOT open/read the script** (it's complete). The bundled script
+   fans out **one sub-agent per cell on `model: sonnet` at `effort: high`** (set
    in the script — Sonnet/high is plenty for this gen/edit + resize work); each sub-agent reads `agent.md`,
    processes its `argline`, and — when the cell's `noFallback` is true — is told `Do not apply the fallback
    rule for this image.` The Workflow runs in the **background** and returns immediately: **one Workflow per
