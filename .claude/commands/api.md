@@ -58,14 +58,15 @@ OPTIONS
   -ratio=VALUE     Aspect, colon removed: 169 916 11 43 34 32 23 219.         Default: 169 (16:9)
   -help            Show this help and exit.
 
-POSITIONALS (always this order, after the flags)
-  <input>          An image path, a folder path (edits every image), or an attached/dropped image
-                   (then omit this). If missing entirely, you'll be asked.
+POSITIONALS (always this order, after the flags — the input has NO flag/tag)
+  <input>          A file path → that image · a folder path → every image in it · or omit it to use
+                   an attached/dropped image. If no path and nothing attached, you'll be asked.
   <prompt...>      Everything after the input = the instruction sent to the model.
 
 EXAMPLES
-  /api -google inputs/cat.png make it a neon cyberpunk wallpaper
-  /api -grok -google -openai inputs/ a clean black-background portrait     # 3 models × every image in inputs/
+  /api -grok -google "./inputs/image.jpg" Make the background black   # 2 models, that one image
+  /api -grok -google "./inputs/" Make the background black            # 2 models × every image in inputs/
+  /api -grok -google Make the background black                        # uses the attached image (else asks)
   /api -google -reprompt -size=1440p -ratio=916 inputs/hero.jpg phone wallpaper, keep the character
   /api -openai -preview <drop an image> turn this into a watercolor
 
@@ -91,13 +92,24 @@ Flags:
   `169`=16:9 · `916`=9:16 · `11`=1:1 · `43`=4:3 · `34`=3:4 · `32`=3:2 · `23`=2:3 · `219`=21:9.
   If unlisted, split into the intended `W:H` integers.
 
-Positionals (always this order, AFTER the flags):
-1. **Input location** (first positional): an existing **file** → use `--image`; an existing
-   **directory** → use `--images-dir`. If the first positional is **not** an existing path **and** an
-   image is attached to the message → there is no location token, the attachment is the input. If
-   neither a path nor an attachment exists → **ask the user for the input.**
-2. **Prompt**: everything after the location (or, when the input is an attached image with no
-   location token, everything after the flags). Join into one string. If empty → **ask.**
+Positionals (always this order, AFTER the flags). **There is NO flag for the input** — it's just the
+first bare token after the flags. Decide with this rule:
+
+1. **Input location** = the first positional token. Strip any surrounding quotes; keep `./` and a
+   trailing `/`. Then:
+   - it resolves to an existing **file** → that's the input → `--image <path>`; the **prompt is
+     everything after it**.
+   - it resolves to an existing **directory** → input = every image in it → `--images-dir <path>`;
+     the **prompt is everything after it** (applies to all images in the folder).
+   - it does **not** resolve to an existing path → there is **no input token**; the input is the
+     **attached/dropped image** if one is present, and **ALL** the positional tokens are the prompt.
+     If no image is attached either → **ask the user for the input** (then all positionals are the prompt).
+2. **Prompt** = the tokens identified above, joined into one string. If empty → **ask.**
+
+Examples (note: no tag precedes the path):
+- `/api -grok -google "./inputs/image.jpg" Make the background black` → file → 2 models edit that one image.
+- `/api -grok -google "./inputs/" Make the background black` → folder → 2 models × every image in `inputs/`.
+- `/api -grok -google Make the background black` → no path token → use the attached image; if none, ask.
 
 Attached-image handling: if the user dropped/attached an image (no path), first save it to a file
 under `inputs/` (or `.cache/<job>/`) and use that path as `--image`. If you can't get a file for it,
