@@ -78,6 +78,7 @@ img_url = res["images"][0]["url"]                    # output: images[] {url,con
 
 - **Id prefixes differ:** OpenAI = `openai/…`, Google/most = `fal-ai/…`, xAI = `xai/…`. Don't assume `fal-ai/`.
 - **Edit input is always `image_urls` (a list)** for all three — even for a single image. Output is always `images[]`.
+- **One-shot transform vs sticker:** Grok `/edit` does a FULL website-style reimagining (reconstruct/outpaint cropped parts, recompose) when given **the user's creative prompt + an `--aspect` override** (e.g. `--aspect 16:9` forces it to generate new side content). A "preserve exactly, only change the background" prompt + manual ImageMagick compositing instead yields a flat **cutout-on-black sticker** — don't do that. Let the model do the whole job in one call.
 - **Resolution case:** Google `1K/2K/4K`, xAI `1k/2k`. Our script auto-cases; raw calls must match.
 - **GPT Image 2 cost trap:** default `quality=high` (1024² ≈ $0.211) is ~4× `medium` ($0.053). Set `--quality medium` to control spend.
 - **Content moderation** → HTTP **422** with `detail[].type == "content_policy_violation"`; not retryable — fix the prompt/image.
