@@ -10,8 +10,12 @@ export const meta = {
 //   `argline` — a single-cell /api argument string: <one model flag> <option flags> <one image PATH> <prompt>
 //   `noFallback` — true when grok is ALSO a selected model for this image (a google/openai cell must then
 //                  NOT fall back to grok, since that image already has its own grok cell — avoids a duplicate).
-const cells = Array.isArray(args) ? args : []
-if (cells.length === 0) return { error: 'no cells in args' }
+// args normally arrives as a real array, but some launch paths deliver it as a JSON string —
+// accept both so the fan-out is robust to how the orchestrator passed it.
+let cells = []
+if (Array.isArray(args)) cells = args
+else if (typeof args === 'string') { try { const p = JSON.parse(args); if (Array.isArray(p)) cells = p } catch (e) {} }
+if (cells.length === 0) return { error: 'no cells in args', argsType: typeof args }
 
 phase('Generate')
 log('fanning out ' + cells.length + ' cell(s) on Sonnet/high')
