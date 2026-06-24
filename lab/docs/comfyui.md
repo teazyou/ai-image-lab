@@ -73,5 +73,28 @@ Model loads **directly to GPU** (MPS confirmed). First prompt pays a one-time ch
   rescanned); `GET /object_info/CheckpointLoaderSimple` lists what's visible.
 - `--listen 127.0.0.1` keeps it local-only. Single process = sequential queue; parallel needs
   multiple processes/ports.
+- **Pad dims must leave the padded canvas ÷8** for the VAE. `ImagePadForOutpaint` pads are ÷8 (step 8),
+  so the *base* image must also be ÷8 — else mask/pixel size mismatch. Pre-crop the input to ÷8 first
+  (e.g. 1226→1224h). Outpaint at native scale (~1–1.6 MP total) gave clean SDXL results here.
+- **Outpaint invents a "floor" + bg box (cutout pipelines).** SDXL outpaint of a portrait with
+  denoise 1.0 fills new area with a lighter *ground/floor slab* under the subject and a rectangular
+  tone-seam at the feather edge. If you then `rembg` the result, the bg seam is harmless (removed) but
+  the floor survives as a **translucent mid-alpha slab** — looks like a white veil over the lower
+  character on a black composite. It's mid-alpha, so a plain alpha threshold can't drop it without
+  eating hair. Remove it by **HSL**: it's low-saturation + mid-brightness neutral gray, unlike
+  saturated hair / near-black dress. Mask `(sat<18% AND light>22%)` *restricted to the lower region*
+  (no skin there) and subtract from alpha; then feather the bottom edge. Worked example:
+  ```bash
+  magick cut.png -alpha off -colorspace HSL -channel G -separate sat.png   # G=saturation
+  magick cut.png -alpha off -colorspace HSL -channel B -separate light.png # B=lightness
+  magick sat.png -threshold 18% -negate lowsat.png; magick light.png -threshold 22% bright.png
+  magick lowsat.png bright.png -compose Multiply -composite fogcand.png
+  magick -size WxH canvas:black -fill white -draw "rectangle 0,Y0 W,H" -blur 0x10 region.png
+  magick fogcand.png region.png -compose Multiply -composite -blur 0x2 fogmask.png
+  magick cut.png -alpha extract \( fogmask.png -negate \) -compose Multiply -composite a.png
+  magick cut.png a.png -compose CopyOpacity -composite cut_defloored.png
+  ```
+  Then drop now-isolated strays (connected-components area-threshold) and compose with
+  `lab/scripts/compose_wallpaper.sh` (bottom feather hides the residual edge naturally).
 
 *Last updated: 2026-06-25*

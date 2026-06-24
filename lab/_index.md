@@ -28,6 +28,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `lab/scripts/bg_to_color.sh` — remove background, composite subject onto a solid-color canvas
 - `lab/scripts/dim_background.sh` — keep subject, overlay a color over the rest at a chosen opacity (dim, not remove)
 - `lab/scripts/comfyui_run.py` — headless ComfyUI client: upload inputs, submit API-format workflow, poll, save results
+- `lab/scripts/compose_wallpaper.sh` — place a transparent cutout on a solid canvas: main-blob trim, scale to %-of-height, gravity anchor, optional bottom feather
 
 **lab/downloads/ — heavy artifacts (content git-ignored)**
 - `lab/downloads/_catalog.md` — catalog of downloaded models/datasets (check before downloading)
