@@ -25,7 +25,11 @@ water — it returns a faint, **translucent** matte (alpha near-zero everywhere)
 cutout. **`birefnet-general` is the fix**: solid opaque masks that even keep thin attached elements
 (flowing ribbons, hair bands, robe). So for anime *characters in complex scenes*, reach for
 `birefnet-general`, not `isnet-anime`. (`u2net_human_seg`/`birefnet-portrait` are trained on real
-people and **miss anime characters** — don't use them on illustration.)
+people and **miss anime characters** — don't use them on illustration.) Same failure on
+**dark, low-contrast appendages** (shadow hands / claws against a near-black bg): isnet-anime keeps
+the bright character but drops the dark hands; `birefnet-general` keeps both. Bonus: compositing
+that matte onto pure-black canvas also erases a faint **star field** in the bg in one step (verified
+2026-06-25 on a silver-haired character grasped by shadow hands → plain black).
 
 **Hard isolations → SAM (click-to-select).** birefnet still fails two ways: it grabs a *connected*
 blob (subject fused with snow/smoke/water) or drops a *low-contrast limb*. No single auto-model
@@ -65,4 +69,4 @@ top. Opacity 1.0 = solid bg; 0.7 = background kept at 30% brightness. Script:
 pure black, foreground water/flowers → 70% dim) split the background with a feathered horizontal
 mask before compositing the subject — see lab/docs/rembg.md.
 
-*Last verified: 2026-06-24*
+*Last verified: 2026-06-25*
