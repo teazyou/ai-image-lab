@@ -24,6 +24,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `lab/wikis/background-removal/README.md` — bg-removal model comparison (isnet-anime / birefnet / u2net)
 - `lab/wikis/precise-segmentation/README.md` — SOTA local interactive segmentation + matting (EfficientTAM/SAM2-3, BiRefNet, ComfyUI); for sub-part/low-contrast isolation rembg can't do
 - `lab/wikis/comfyui/README.md` — ComfyUI evaluation: confirmed generative backbone (inpaint/outpaint/controlnet/ip-adapter via HTTP+WS API); complements rembg/ImageMagick, not a replacement; M4 Max/MPS flags + gotchas
+- `lab/wikis/anime-character-gen/README.md` — full-body anime character gen preserving a reference design (SDXL + IP-Adapter + ControlNet OpenPose on ComfyUI/MPS); checkpoint/adapter/CN picks + install gotchas
 
 **lab/scripts/ — reusable parametrized scripts (`--help` on each)**
 - `lab/scripts/bg_to_color.sh` — remove background, composite subject onto a solid-color canvas
