@@ -60,16 +60,18 @@ it, then show the result.
    then **save the findings to `lab/wikis/` before acting**. Never rely on training data for tool
    specifics, install steps, commands, parameters, model choices, or comparisons — they drift fast.
    Everything below must trace to something written in `lab/wikis/`, not to memory.
+   **Run the research itself in a sub-agent (§6).**
 4. **Route** to the cheapest *correct* tool (§5), justified by the step-3 wiki knowledge. Prefer: existing install > new install;
    non-AI (ImageMagick) > diffusion when it fully satisfies the request; local > free cloud.
 5. **Plan & inform** — tell the user the approach + any time estimate, then install whatever's
-   needed (no confirmation). Flag big downloads' size + ETA.
+   needed (no confirmation). Flag big downloads' size + ETA. **Run the install in a sub-agent (§6).**
 6. **Execute** — pilot the tool via CLI / HTTP API / a `lab/scripts/` script; first check `lab/docs/<tool>`
    for its working commands, API shapes, and known gotchas. Write the **final result(s) to the root
    of `outputs/`** with a descriptive name (unless the user gave a path); put any
    **intermediate/temp files** (cutouts, masks) in `.cache/`. **No `manifest.json`** —
    `outputs/` is ephemeral; if a run's recipe is worth keeping, promote it to `lab/scripts/` (reusable
    command) or `lab/docs/` (process notes). Never modify the input file in place.
+   **Run heavy/long modification runs in a sub-agent and QA its output yourself (§6).**
 7. **Persist everything learned** (mandatory — §4): new install → `lab/_installed.md`; downloaded asset
    → `lab/downloads/_catalog.md`; hard-won tool how-to / gotchas → `lab/docs/<tool>`; world knowledge &
    research → `lab/wikis/<scope>/`; reusable command → `lab/scripts/`. If you added/removed a tracked
@@ -150,7 +152,27 @@ what's already there.**
 Update this table whenever you adopt or replace a tool. **Backbone = ComfyUI** (headless,
 API-driven). **`uv`** is the standard Python manager. (Both chosen for this lab.)
 
-## 6. Self-maintenance
+## 6. Delegate heavy work to sub-agents (protect the context window)
+
+Research, installation, and heavy modification runs spew large volumes of output — web pages,
+`pip`/build logs, multi-GB download chatter, generation traces — that would bloat this session's
+context. **Run them in a plain sub-agent** (Agent tool, `subagent_type: claude`, **same model as
+this session — never downgrade**) and keep only the distilled result in the main thread.
+
+**Always delegate:**
+- **Wiki research** (loop step 3) — the sub-agent does the web search + doc reading and returns the
+  findings; **you** write them to `lab/wikis/` and act on them.
+- **Installation** (loop step 5) — the sub-agent runs the installs/downloads and returns the working
+  recipe, versions, sizes, and gotchas; **you** record them in `lab/_installed.md` / `lab/docs/`.
+- **Heavy modification runs** (loop step 6) — generation, batch edits, training, any long pipeline.
+  The sub-agent executes and **reports back everything**: each step, errors hit, and how it resolved
+  them. **You then QA the output yourself** — load the result, judge quality, and **iterate
+  (re-delegate with adjustments) if it's not good enough.**
+
+Quality control, knowledge-writing, and user-facing reporting **stay with the main session** — never
+the sub-agent. The sub-agent does the verbose work; you keep the judgment.
+
+## 7. Self-maintenance
 
 You may reorganize or evolve this structure whenever it improves navigability — that authority is
 yours. When you do, **update this file and the master `lab/_index.md` in the same change** so the repo
