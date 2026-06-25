@@ -2,6 +2,7 @@
 name: rule-of-thirds
 description: Shift a subject off-center so it looks into the open space (rule-of-thirds / lead-room look). Per image, decide left|right from the subject's facing, then move it that % of the image width. Local-only (ImageMagick).
 argument-hint: "[-20|-30] <image-or-folder-path>"
+disable-model-invocation: true
 ---
 
 # /rule-of-thirds — face-aware off-center shift (local)
