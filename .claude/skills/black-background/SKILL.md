@@ -1,38 +1,86 @@
 ---
 name: black-background
-description: Keep the subject, turn everything else into a solid black background. Works on one image or a whole folder. Local-only (rembg + ImageMagick).
-argument-hint: "<image-or-folder-path>"
+description: Keep the subject, turn everything else into a solid black background. Works on one image or a whole folder. Chops the images into groups of ≤`max_images_per_groups` (default 10) and runs them through a pool of ≤`max_parallels_agents` (default 2) background workers — at most that many run at once; when one finishes its group it picks up the next waiting group. Each worker processes its group sequentially, one image at a time, and DOES per-image vision (pick the rembg model by subject) + QA. One worker peaks ≈ ~14 GB RAM worst case (birefnet), so the default holds peak ≈ 28 GB. Optional `-parallels=N` overrides the pool size for a run (1 = one at a time). Each worker is a Sonnet sub-agent wrapping `lab/scripts/bg_to_color.sh -c black`. Local-only (rembg + ImageMagick).
+argument-hint: "<image-or-folder-path> [-parallels=N]"
 disable-model-invocation: true
 ---
 
-# /black-background — cut out the subject onto solid black (local)
+# /black-background — orchestrate "subject onto solid black" through a bounded worker pool
 
-Remove each image's background and composite the subject onto a **pure-black** canvas (same dims).
-The mechanical pipeline already exists → [lab/scripts/bg_to_color.sh](../../../lab/scripts/bg_to_color.sh)
-(`rembg` cutout → ImageMagick black canvas). **Your job is the judgment: pick the right rembg model
-per subject, then QA.** Don't duplicate the script.
+You are the **orchestrator** for `/black-background`. Your only job: fan the request out into a
+**background dynamic Workflow** that **chops the images into groups and runs them through a bounded
+pool of worker sub-agents** — on Sonnet at **high** effort, each following the bundled `agent.md` —
+then relay their results. **You never view, pick a model for, or QA any image, and you never read
+`agent.md` yourself** — the workers own that (each worker does its own per-image vision + QA). (This
+skill authorizes the Workflow tool; see step 3.)
+
+**How the Workflow splits & schedules the work (two knobs):**
+- It chops the flat image list into **groups of at most `max_images_per_groups` images** (default
+  **10**) — so #groups = ceil(#images / 10). Bounding a group keeps any one worker's context window
+  from getting bloated.
+- It runs those groups through a **pool of at most `max_parallels_agents` workers** (default **2**) —
+  at most that many run **at once**; **when a worker finishes its group it immediately picks up the
+  next waiting group**, until all groups are done. Each worker processes its own group **strictly one
+  image at a time (sequentially)**.
+- **RAM:** one running worker does one rembg cutout at a time. Measured peak RSS (one rembg at a
+  time): `u2net_human_seg` ≈ 2.1 GB · `isnet-anime` ≈ 4.5 GB · `birefnet-general` ≈ **14.2 GB**
+  (worst case, resolution-independent). So peak ≈ `max_parallels_agents × ~14 GB` worst case —
+  default 2 ⇒ **~28 GB**, safe on this 48 GB Mac (lighter models use far less). This is exactly why
+  the pool is bounded **and** why each worker runs one rembg at a time: an unbounded fan-out of
+  birefnet jobs would blow past memory and crash.
+
+> **Tweakable knobs** — both are single constants at the **top of
+> `.claude/skills/black-background/fanout.workflow.js`**: `max_parallels_agents` (default 2, the
+> concurrency/RAM cap) and `max_images_per_groups` (default 10, the per-worker workload cap). Change a
+> **one line** there to retune; nothing else needs editing. The **`-parallels=N`** argument overrides
+> `max_parallels_agents` for a single run.
 
 Raw arguments: `$ARGUMENTS`
 
-## Steps
+## What the orchestrator does (ONLY this)
 
-1. **Build the image list.** Strip quotes from the path. File → `[that file]`. Folder → every image
-   in it (`*.png *.jpg *.jpeg *.webp`, non-recursive). Empty → tell the user, stop.
-2. **Per image — pick the rembg model (cheap vision):** glance at a downscaled copy
-   (`magick "<img>" -resize 480x /tmp/bb_peek.png`) only to classify the subject:
-   - **anime / illustration** → `-t anime` (isnet-anime)
-   - **real person / photo of a human** → `-t person` (u2net_human_seg)
-   - **other photo / object** → `-t photo` (birefnet-general)
-   - **Override → `-m birefnet-general`** when the subject has **dark, low-contrast parts that must
-     survive** (shadow hands/claws, black fur, dark appendages): isnet-anime drops them, birefnet keeps
-     them (see `lab/wikis/background-removal/`). Worth a glance specifically for this.
-3. **Run:** `lab/scripts/bg_to_color.sh -i "<img>" -c black -t <type>` (or `-m <model>`).
-   Output → `outputs/<stem>_black-bg.png`. The script leaves a cutout at `.cache/<stem>_cutout.png`.
-4. **QA each result yourself** — view it. Check the whole subject survived (no dropped limbs/hair) and
-   there's no white halo/fringe. If parts were lost or it's haloed, **retry with another model**
-   (e.g. birefnet ↔ isnet) and keep the better one.
-5. **Clean up** the cutout(s) (`rm .cache/<stem>_cutout.png`) and the temp peek file.
-6. **Report** one line per image: model used + output path.
+Keep your own output to one terse line per action. Never view any pixels. **Do NOT read `agent.md` or
+`fanout.workflow.js`** — both are complete; you only ever pass their *path* (and the `args`), never their
+contents, so opening them just burns tokens. Likewise don't read `lab/docs/`, `lab/wikis/`, or
+`CLAUDE.md`. Open any of these **only if** launching the Workflow throws an error you must diagnose.
 
-Notes: never modify inputs in place; outputs are git-ignored (nothing to commit unless the skill itself changed).
-Two subjects where one is a pure-black silhouette can't both show on black — flag that to the user instead of guessing.
+1. **Parse args (cheap text only).**
+   - **`-parallels=N`** (optional) — if a token matches `-parallels=<integer ≥1>` (also accept
+     `--parallels=N`), pull it out as the pool-size override `N`; if absent, there is no override (the
+     Workflow uses its `max_parallels_agents` default). `-parallels=1` = strictly one worker at a time.
+   - **Input** = the remaining bare positional (strip surrounding quotes; keep a trailing `/`). No other
+     flags — every input gets the same subject-onto-black pipeline (the worker picks the rembg model per image).
+2. **Build the image list → the cells.**
+   - Input resolves (`test -e`) to a **file** → list is `[that file]`; to a **directory** → list is
+     **every image in it** (`*.png *.jpg *.jpeg *.webp`, non-recursive — actually list them). Empty
+     folder, unresolved path, or no input token → tell the user (ask for an image or folder path), STOP
+     (no worker).
+   - **One cell per image**, an object `{ argline, label }` — build the **flat** per-image list; the
+     Workflow itself chops it into groups and schedules the pool (you do **not** group or schedule):
+     - `argline` — a single-cell `/black-background` argument string: `"<that ONE image PATH>"`.
+     - `label` — the image stem (shown in the progress display).
+3. **Launch a background dynamic Workflow** — this skill **authorizes the Workflow tool**. Call
+   `Workflow({ scriptPath: ".claude/skills/black-background/fanout.workflow.js", args: { cells: <the
+   cell array>, parallels: <N or omit> } })` — **pass the path as-is; do NOT open/read the script** (it's
+   complete). Pass `cells` as a real JSON array; include `parallels` **only if** `-parallels=N` was given.
+   The bundled script chops the cells into groups of ≤`max_images_per_groups` and runs them through a
+   pool of ≤(`parallels` or `max_parallels_agents`) sub-agents on `model: sonnet` at `effort: high`; each
+   reads `agent.md`, then for **each image in its group sequentially** picks the rembg model (vision),
+   runs the cutout-onto-black, QAs, and reports. The Workflow runs in the **background** and returns
+   immediately: **one Workflow per `/black-background` request**, so you stay free to chain.
+4. **Acknowledge in one line**, e.g. `▶ launched workflow — 53 images → 6 groups of ≤10, pool of 2
+   workers (~28 GB peak), subject → solid black`. State the image count and, if you can, the group/pool
+   numbers (groups = ceil(images/10); pool = the override N if given, else 2 capped to #groups). The live
+   counts also show in the workflow progress. Write nothing else.
+5. **Stay ready & chain.** Treat any follow-up that names an input as another job — re-run steps 1–4 for
+   each; each fires its own background Workflow (they run concurrently — note that two concurrent jobs
+   each at the pool cap can double the live RAM). Plain non-job messages you just answer normally.
+6. **Relay, don't QA.** When a Workflow finishes, the harness notifies you with its aggregated results
+   (one report per group, each covering the images in that group) — relay them **compactly** (one small
+   row per image — image · rembg model used · output path, plus any black-on-black ambiguity the worker
+   flagged). Add no QA, previews, or commentary of your own. (`outputs/` is git-ignored ⇒ nothing to
+   commit unless the script/skill itself changed.)
+
+That is the entire orchestrator job. The worker's full per-image pipeline (model-pick table, the
+`bg_to_color.sh` call, QA, cleanup, the black-on-black flag) lives in `agent.md` — do not inline it.
+Inputs are never modified in place; results land in `outputs/<stem>_black-bg.png`.
