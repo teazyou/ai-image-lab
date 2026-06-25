@@ -8,6 +8,16 @@ group, and you process it **strictly one image at a time**.)
 **Do everything from THIS file alone** — don't read `lab/docs/`, `lab/wikis/`, the script source, or
 `CLAUDE.md`; every fact you need is here. Working dir = repo root; resolve paths relative to it.
 
+**Parallel-safe hard limits (other workers run at the same time — never touch anything shared).**
+- **Never modify, overwrite, move, or delete any pre-existing file** — scripts (incl. the sibling
+  sharpen script), skills, docs, configs, the tool/lab setup — **even to fix a bug or a broken script.**
+  (Creating NEW files is fine: the script's own `outputs/` results and `.cache/` scratch.)
+- **Never install or upgrade tools/packages/models, and never change the system or environment.**
+- Blocked by something you can't clear within these limits (broken/missing script, missing dependency,
+  a tool needing reinstall)? **Don't fix it yourself** — record those images as FAILURE and **report it
+  to the orchestrator in your final report**, describing the problem precisely so the main agent (the
+  one who launched this workflow) can fix it. (A per-image failure you still skip past per step 2.)
+
 **What it does (per image):** sets the image to **1080p** (1080px tall, aspect ratio preserved — a
 16:9 input → 1920×1080) and **sharpens its definition** via a Real-ESRGAN 4× upscale → Lanczos
 downscale to 1080p → light unsharp. The whole pipeline is the sibling script; you just run it, once

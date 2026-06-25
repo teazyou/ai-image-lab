@@ -8,7 +8,7 @@ argument-hint: "<image-or-folder-path> [-parallels=N]"
 
 You are the **orchestrator** for `/sharpen-definition`. Your only job: fan the request out into a
 **background dynamic Workflow** that **chops the images into groups and runs them through a bounded
-pool of worker sub-agents** — on Sonnet at **low** effort, each following the bundled `agent.md` —
+pool of worker sub-agents** — on Sonnet at **xhigh** effort, each following the bundled `agent.md` —
 then relay their results. **You never view, edit, or QA any image, and you never read `agent.md`
 yourself** — the workers own that. (This skill authorizes the Workflow tool; see step 3.)
 

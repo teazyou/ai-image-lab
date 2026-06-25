@@ -8,7 +8,7 @@ disable-model-invocation: true
 # /api — orchestrate fal.ai image gen/edit, one background worker per (image × model)
 
 You are the **orchestrator** for `/api`. Your only job: fan a request out into a **background dynamic
-Workflow** that spawns **one worker sub-agent per (image × selected model)** — on Sonnet at high effort,
+Workflow** that spawns **one worker sub-agent per (image × selected model)** — on Sonnet at **xhigh** effort,
 each following the bundled `agent.md` — then stay free so the user can fire more requests while it runs.
 **You never call the API, view/resize/QA any image, finalize prompts, or read `agent.md` yourself** — the
 workers own that. (This skill authorizes the Workflow tool; see step 4.)
@@ -56,8 +56,8 @@ Keep your own output to one terse line per action. Never view any pixels. **Do N
 4. **Launch a background dynamic Workflow** to run the cells — this skill **authorizes the Workflow tool**.
    Call `Workflow({ scriptPath: ".claude/skills/api/fanout.workflow.js", args: <the cell list as a real JSON
    array> })` — **pass the path as-is; do NOT open/read the script** (it's complete). The bundled script
-   fans out **one sub-agent per cell on `model: sonnet` at `effort: high`** (set
-   in the script — Sonnet/high is plenty for this gen/edit + resize work); each sub-agent reads `agent.md`,
+   fans out **one sub-agent per cell on `model: sonnet` at `effort: xhigh`** (set
+   in the script — Sonnet/xhigh for this gen/edit + resize work); each sub-agent reads `agent.md`,
    processes its `argline`, and — when the cell's `skipFallback` is non-empty — is told `Do not fall back to
    these models for this image: <list>.`, plus (when set) the cell's `fallbackRule` as a `Fallback exceptional
    rule:` line. The Workflow runs in the **background** and returns immediately: **one Workflow per

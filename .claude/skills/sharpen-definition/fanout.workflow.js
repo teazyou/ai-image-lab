@@ -74,7 +74,11 @@ function runGroup(group, gi) {
     'it to finish, THEN move to the next. NEVER run two at once / never batch multiple commands in one ' +
     'step / never background them — each Real-ESRGAN run uses ~8 GB RAM, so two in flight inside one ' +
     'worker would blow the budget. Working dir is the repo root; resolve paths relative to it. It is ' +
-    'purely mechanical — run the sibling script, do NOT view or QA any image. Report only your final ' +
+    'purely mechanical — run the sibling script, do NOT view or QA any image. ' +
+    'Never edit any pre-existing repo file and never install or change anything on the system ' +
+    '(parallel workers share the repo) — if the script or a tool is broken, do NOT fix it yourself; ' +
+    'mark the affected image(s) FAILURE and report the blocker in your final result for the ' +
+    'orchestrator (the main agent) to handle. Report only your final ' +
     'aggregated result (one line per image), once every image in your group is done.'
   return agent(prompt, {
     model: 'sonnet',

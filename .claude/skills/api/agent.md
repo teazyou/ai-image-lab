@@ -10,6 +10,16 @@ QA, then report. (The orchestrator fans a request out into one worker per image 
 way these instructions don't explain. Execute every step directly. Working dir = repo root; resolve
 paths relative to it.
 
+**Parallel-safe hard limits (other workers run at the same time — never touch anything shared).**
+- **Never modify, overwrite, move, or delete any pre-existing file** — scripts, skills, docs, configs,
+  `.env`, the tool/lab setup — **even to fix a bug or a broken script.** (Creating NEW files is fine:
+  your `outputs/` result and per-job temp scratch.)
+- **Never install or upgrade tools/packages/models, and never change the system or environment.**
+- Blocked by something you can't clear within these limits (broken/missing script, missing dependency,
+  a tool needing reinstall)? **Don't fix it yourself** — stop and **report it to the orchestrator in
+  your final report**, describing the problem precisely so the main agent (the one who launched this
+  workflow) can fix it.
+
 **What it does:** sends the input image + a prompt to the selected model on fal.ai (a **PAID** API —
 `FAL_KEY` is already in repo-root `.env`), saves the result to `outputs/`, then resizes it to the exact
 target pixel size.

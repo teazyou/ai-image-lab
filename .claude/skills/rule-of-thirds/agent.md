@@ -9,6 +9,16 @@ the subject should move (this needs **VISION**), run the mechanical shift, QA th
 `CLAUDE.md`; every fact you need is here. Execute every step yourself. Working dir = repo root; resolve
 paths relative to it.
 
+**Parallel-safe hard limits (other workers run at the same time — never touch anything shared).**
+- **Never modify, overwrite, move, or delete any pre-existing file** — scripts (incl. the sibling
+  shift script), skills, docs, configs, the tool/lab setup — **even to fix a bug or a broken script.**
+  (Creating NEW files is fine: your `outputs/` result and temp scratch peek files.)
+- **Never install or upgrade tools/packages/models, and never change the system or environment.**
+- Blocked by something you can't clear within these limits (broken/missing script, missing dependency,
+  a tool needing reinstall)? **Don't fix it yourself** — stop and **report it to the orchestrator in
+  your final report**, describing the problem precisely so the main agent (the one who launched this
+  workflow) can fix it.
+
 **What it does:** moves the subject horizontally so it looks INTO the open space (rule-of-thirds /
 lead-room look) on a **solid-background** image (e.g. our black-bg wallpapers). Direction needs visual
 judgment (your job); the shift itself is mechanical (the sibling script). The script reads the bg color

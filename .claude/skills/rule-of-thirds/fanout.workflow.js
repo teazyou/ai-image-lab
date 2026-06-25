@@ -26,6 +26,9 @@ const results = await parallel(cells.map((c, i) => () => {
     'this `/rule-of-thirds` argument string:\n' + c.argline + '\n' +
     'You handle exactly this ONE image. Working dir is the repo root; resolve paths relative to it. ' +
     'Execute every step yourself.\n' +
+    'Never edit any pre-existing repo file and never install or change anything on the system ' +
+    '(parallel workers share the repo) — if a script or tool is broken, do NOT fix it yourself; ' +
+    'report the blocker in your final result for the orchestrator (the main agent) to handle.\n' +
     'Report only your final result, once you are done.'
   return agent(prompt, {
     model: 'sonnet',
