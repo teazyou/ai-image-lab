@@ -5,11 +5,12 @@ export const meta = {
 }
 
 // Launched by the /api skill (SKILL.md), once per /api request, in the background.
-// args: [{ argline: string, label?: string, noFallback?: boolean }, ...]
+// args: [{ argline: string, label?: string, skipFallback?: string[] }, ...]
 //   One cell per (image × selected model).
 //   `argline` — a single-cell /api argument string: <one model flag> <option flags> <one image PATH> <prompt>
-//   `noFallback` — true when grok is ALSO a selected model for this image (a google/openai cell must then
-//                  NOT fall back to grok, since that image already has its own grok cell — avoids a duplicate).
+//   `skipFallback` — the OTHER models selected for this same image (selected set minus this cell's own model).
+//                    Those already have their own cells, so this worker must not fall back onto them (avoids a
+//                    duplicate). Fallback order is google ↔ openai then grok last; see agent.md.
 // args normally arrives as a real array, but some launch paths deliver it as a JSON string —
 // accept both so the fan-out is robust to how the orchestrator passed it.
 let cells = []
@@ -23,7 +24,8 @@ log('fanning out ' + cells.length + ' cell(s) on Sonnet/high')
 // Each cell → one worker sub-agent, pinned to model: sonnet at effort: high (the whole point of the
 // workflow: the plain Agent tool can't set effort, agent() can). The worker reads agent.md and does the job.
 const results = await parallel(cells.map((c, i) => () => {
-  const noFb = c.noFallback ? '\nDo not apply the fallback rule for this image.' : ''
+  const skip = Array.isArray(c.skipFallback) ? c.skipFallback : []
+  const noFb = skip.length ? '\nDo not fall back to these models for this image: ' + skip.join(', ') + '.' : ''
   const prompt =
     'Read the worker spec at `.claude/skills/api/agent.md` and follow it EXACTLY to process this `/api` ' +
     'argument string:\n' + c.argline + '\n' +

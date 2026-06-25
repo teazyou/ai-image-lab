@@ -83,15 +83,23 @@ Run your one model (edit mode is automatic), substituting the step-1/2 values �
 
 Capture the saved file path, the script's printed **est cost** line, and any error (e.g. a 422 content-policy block).
 
-**Content-policy fallback → grok (automatic — don't ask).** grok's edit tier is the most permissive. If your
-model is **google** or **openai** and the run is **rejected by moderation** (a content-policy / safety block —
-e.g. a 422, or a refusal / no image), **immediately re-run the SAME request for this image** with
-`… --model grok --image <path> --prompt "$(cat "$PF")" --aspect <rW:rH> --resolution <1k|2k>` (no 4k), then
-normalize it (step 6) and report it. Trigger on **moderation rejections only** — for network/quota/timeout
-errors just report the failure. Flag the result `(fallback from <google|openai>)` and add its est cost to your total.
+**Content-policy fallback (automatic — don't ask).** Fallback order is **google ↔ openai, then grok last**
+(grok's edit tier is the most permissive). Trigger on **moderation rejections only** (a content-policy / safety
+block — e.g. a 422, or a refusal / no image); for network/quota/timeout errors just report the failure. On a
+moderation rejection, **immediately re-run the SAME request for this image** on the next model in the chain,
+applying *that* model's own knobs per §2 (google/grok use `--aspect`+`--resolution`, grok has no 4k; openai uses
+`--size`+`--quality high`):
+- your model is **google**, rejected → retry on **openai**; if openai is *also* rejected → retry on **grok**.
+- your model is **openai**, rejected → retry on **google**; if google is *also* rejected → retry on **grok**.
+- your model is **grok** → no fallback (it's the last resort); on rejection just report the failure.
 
-**When instructed, do not apply the fallback rule.** If your task prompt says *"Do not apply the fallback rule
-for this image."*, skip the fallback entirely — on a moderation rejection just report the failure (no grok retry).
+Keep walking the chain until one succeeds or grok fails. Then normalize the winner (step 6) and report it; flag
+it `(fallback: <model>→<model>…)` and add **every** attempt's est cost to your total.
+
+**Skip already-covered models.** If your task prompt says *"Do not fall back to these models for this image:
+<list>"*, treat those models as unavailable fallback targets — skip over them in the chain (they already have
+their own cells, so falling back onto one would duplicate work). If skipping leaves no remaining target, just
+report the failure on a rejection.
 
 ## 6 — exact size normalization (for the saved output file F)
 - `magick identify -format '%wx%h' "F"` → if it already equals the target `W×H`, leave it.
