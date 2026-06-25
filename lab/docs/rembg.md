@@ -38,6 +38,11 @@ uv pip install --python lab/downloads/tools/rembg/.venv \
     curl -sL --retry 3 --retry-delay 1 -C - -o "$DEST" "$URL" || true   # -C - = resume
   done
   ```
+- **`birefnet-general` is RAM-heavy: ~14 GB peak per image** (RSS — ONNX decoder activations, *not*
+  the 973 MB weights; resolution-independent, same at 1080p and 4K). vs ~4.5 GB `isnet-anime` /
+  ~2.1 GB `u2net_human_seg` (measured 2026-06-26). It's the heaviest single op in the lab → run
+  birefnet jobs **sequentially** (≤2 in parallel on this 48 GB Mac). Per-model table:
+  [lab/wikis/background-removal](../wikis/background-removal/README.md).
 
 ## CLI (working examples)
 
@@ -108,4 +113,4 @@ darken whole image (`-evaluate multiply 0.3`); build sky mask (`-size WxH xc:bla
 -draw "rectangle 0,0 W,HORIZON" -blur 0x18`); composite a black layer through that mask over the
 dark base; finally composite the subject cutout on top.
 
-*Last updated: 2026-06-24*
+*Last updated: 2026-06-26*

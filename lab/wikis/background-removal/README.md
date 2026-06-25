@@ -53,6 +53,13 @@ resolution / aspect ratio in one step.
   176 MB). Fast enough that MPS/GPU isn't worth the trouble for single images.
 - birefnet-general: ~9 s wall per image (1–4 MP) on M4 Max CPU once cached; model is 973 MB (first
   run downloads it — see the resume-loop gotcha in lab/docs/rembg.md).
+- **Peak RAM per image (RSS, measured 2026-06-26 — tree-sampler and `/usr/bin/time -l` agree to
+  0.1 GB):** `u2net_human_seg` ≈ **2.1 GB** · `isnet-anime` ≈ **4.5 GB** · `birefnet-general` ≈
+  **14.2 GB**. birefnet is **resolution-independent** (same ~14 GB at 1080p and 4K — it resizes input
+  to a fixed internal size; the cost is its high-res *decoder activations*, not your pixels, and not
+  the 973 MB weights). It's the **heaviest single op in the lab** (~1.8× Real-ESRGAN's ~8 GB MPS).
+  All of it is normal CPU/ONNX RSS, so parallelism is **RAM-bound**: on 48 GB keep birefnet to **≤2
+  concurrent** (~28 GB); u2net/isnet can run several at once.
 
 ## Links
 - rembg: https://github.com/danielgatis/rembg · https://pypi.org/project/rembg/
@@ -69,4 +76,4 @@ top. Opacity 1.0 = solid bg; 0.7 = background kept at 30% brightness. Script:
 pure black, foreground water/flowers → 70% dim) split the background with a feathered horizontal
 mask before compositing the subject — see lab/docs/rembg.md.
 
-*Last verified: 2026-06-25*
+*Last verified: 2026-06-26*
