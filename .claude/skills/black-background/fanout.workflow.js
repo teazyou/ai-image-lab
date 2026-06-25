@@ -19,7 +19,7 @@ export const meta = {
 //   them sequentially, one at a time). Bounds a single worker's workload so its
 //   context window doesn't get bloated. Images are chopped into groups of this size;
 //   number of groups = ceil(total images / max_images_per_groups).
-const max_parallels_agents = 2
+const max_parallels_agents = 3
 const max_images_per_groups = 10
 // ─────────────────────────────────────────────────────────────────────────────
 
