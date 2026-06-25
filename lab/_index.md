@@ -14,6 +14,10 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `.claude/skills/rule-of-thirds/fanout.workflow.js` — `/rule-of-thirds` dynamic-Workflow script: fans out one sub-agent per image on `model: sonnet`/`effort: xhigh`, each reading `agent.md`. Cells passed in via Workflow `args`
 - `.claude/skills/rule-of-thirds/rule_of_thirds_shift.sh` — the shift: move subject by P% of width toward a given dir on a solid-bg image; auto-detects bg color (top-left px), clamps so the subject never clips
 - `.claude/skills/black-background/SKILL.md` — `/black-background` skill: keep the subject, turn the rest solid black, for one image or a whole folder. Per image picks the rembg model by subject (anime/person/photo; birefnet to keep dark appendages) then QAs; wraps `lab/scripts/bg_to_color.sh -c black`. Local-only, explicit-invoke
+- `.claude/skills/sharpen-definition/SKILL.md` — `/sharpen-definition` skill (orchestrator): parse file/folder, build the per-image cell list, then launch a background dynamic Workflow (`fanout.workflow.js`) that runs one Sonnet/low **mechanical** worker per image; relays results, never views/edits/QAs images. Local-only, auto-invocable
+- `.claude/skills/sharpen-definition/agent.md` — `/sharpen-definition` worker spec for ONE image: parse path → run the sibling script (set 1080p + sharpen) → report once. **No vision, no QA** (purely mechanical). Self-contained (reads no docs)
+- `.claude/skills/sharpen-definition/fanout.workflow.js` — `/sharpen-definition` dynamic-Workflow script: fans out one sub-agent per image on `model: sonnet`/`effort: low`, each reading `agent.md`. Cells passed in via Workflow `args`
+- `.claude/skills/sharpen-definition/sharpen_definition.sh` — the pipeline: Real-ESRGAN 4× upscale → Lanczos downscale to 1080p (height, AR preserved) → light unsharp; writes `outputs/<stem>_1080p-sharp.png`, cleans own `.cache/` scratch
 - `README.md` — human-facing project intro
 - `.env` — secrets (git-ignored); holds `FAL_KEY` for fal.ai. Template: `.env.example` (tracked)
 - `.env.example` — tracked template for `.env`
