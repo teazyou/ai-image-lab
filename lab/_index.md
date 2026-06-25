@@ -26,6 +26,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `lab/docs/rembg.md` — rembg: install recipe, model choice, solid-color composite
 - `lab/docs/comfyui.md` — ComfyUI: headless launch flags, HTTP API, client script, installed SDXL inpaint model, measured perf
 - `lab/docs/fal-api/README.md` — fal.ai API: install, `.env`/`FAL_KEY`, `fal_run.py` usage, best model per brand (OpenAI/Google/xAI) + ids/schemas, gotchas
+- `lab/docs/realesrgan.md` — Real-ESRGAN upscaler (via spandrel, MPS): venv, `upscale.py` usage, models, Apple-Silicon notes, gotchas
 
 **lab/wikis/ — world knowledge (concepts, research, tool/model comparisons)**
 - `lab/wikis/background-removal/README.md` — bg-removal model comparison (isnet-anime / birefnet / u2net)
@@ -33,6 +34,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `lab/wikis/comfyui/README.md` — ComfyUI evaluation: confirmed generative backbone (inpaint/outpaint/controlnet/ip-adapter via HTTP+WS API); complements rembg/ImageMagick, not a replacement; M4 Max/MPS flags + gotchas
 - `lab/wikis/anime-character-gen/README.md` — full-body anime character gen preserving a reference design (SDXL + IP-Adapter + ControlNet OpenPose on ComfyUI/MPS); checkpoint/adapter/CN picks + install gotchas
 - `lab/wikis/fal-api-router/README.md` — fal.ai vs brand-direct pricing for OpenAI/Gemini/Grok image models + top-3 competitors; 100-img cost in VND, per-model fal fee % (verified 2026-06-25)
+- `lab/wikis/upscaling/README.md` — upscaling/super-resolution: why spandrel over original Real-ESRGAN repo/ncnn-vulkan; MPS reality; model choice (verified 2026-06-25)
 
 **lab/scripts/ — reusable parametrized scripts (`--help` on each)**
 - `lab/scripts/bg_to_color.sh` — remove background, composite subject onto a solid-color canvas
@@ -40,6 +42,7 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `lab/scripts/comfyui_run.py` — headless ComfyUI client: upload inputs, submit API-format workflow, poll, save results
 - `lab/scripts/compose_wallpaper.sh` — place a transparent cutout on a solid canvas: main-blob trim, scale to %-of-height, gravity anchor, optional bottom feather
 - `lab/scripts/fal_run.py` — fal.ai batch client: prompts × image/folder → gen or edit via OpenAI/Google/xAI (or raw fal id), saves to `outputs/`; `--dry-run`, cost estimate
+- `lab/scripts/upscale.py` — Real-ESRGAN/spandrel upscaler on MPS: tiled super-resolution, `--model/--scale/--tile/--device` (run via the realesrgan venv)
 
 **lab/downloads/ — heavy artifacts (content git-ignored)**
 - `lab/downloads/_catalog.md` — catalog of downloaded models/datasets (check before downloading)

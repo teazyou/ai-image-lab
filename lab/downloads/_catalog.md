@@ -19,6 +19,7 @@ session answer "do we already have X, and where?" without re-fetching. Rules: se
 | CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors | model (CLIP vision) | image encoder paired with the vit-h IP-Adapter | 2.4 GB | `…/models/clip_vision/` | huggingface.co/h94/IP-Adapter `models/image_encoder/model.safetensors` (renamed) | 2026-06-25 |
 | controlnet-openpose-sdxl-xinsir.safetensors | ControlNet | ComfyUI — SDXL OpenPose pose control (xinsir, SOTA) | 2.5 GB | `…/models/controlnet/` | huggingface.co/xinsir/controlnet-openpose-sdxl-1.0 `diffusion_pytorch_model.safetensors` (renamed) | 2026-06-25 |
 | DWPose (yolox_l + dw-ll_ucoco) | model | comfyui_controlnet_aux DWPreprocessor (auto-downloaded on first use) | 336 MB | `…/custom_nodes/comfyui_controlnet_aux/ckpts/` | hf hr16/* + yzd-v/DWPose (auto) | 2026-06-25 |
+| RealESRGAN_x4plus.pth | upscaler | Real-ESRGAN (spandrel) — general-photo 4x super-resolution; lab default | 64 MB | `lab/downloads/models/realesrgan/RealESRGAN_x4plus.pth` | github.com/xinntao/Real-ESRGAN releases v0.1.0 | 2026-06-25 |
 
 _Type = checkpoint · LoRA · VAE · ControlNet · embedding · upscaler · model · …_
 rembg auto-downloads models into `$U2NET_HOME` → `lab/downloads/cache/u2net/` (kept in-repo, ignored).
