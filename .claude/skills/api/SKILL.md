@@ -43,11 +43,14 @@ Keep your own output to one terse line per action. Never view any pixels. **Do N
      own model). Those already have their own cells, so the worker must not fall back onto them (avoids a
      duplicate). E.g. `-google -openai` on one image → the google cell's `skipFallback` is `["openai"]`, the
      openai cell's is `["google"]`. Usually `[]` (only one model selected).
-   - `fallbackRule` — **omit unless** the request states a custom fallback chain (e.g. "fallback to gemini then
-     grok if needed"). Then set it to that chain as plain text (e.g. `"if openai fails or is content-policy-
-     rejected, retry on google, then on grok"`); it OVERRIDES agent.md's default order for that cell. The script
-     passes it to the worker as a separate instruction line — **never** put it in `argline`/the prompt (it would
-     get drawn into the image).
+   - `fallbackRule` — **omit unless** the request says something about fallback for this image. Then set it to
+     plain text capturing the user's intent; it OVERRIDES agent.md's default order (google↔openai then grok)
+     for that cell. Common phrasings → value:
+       • "no fallback" / "don't retry on another model" → `"if the chosen model fails or is content-policy-rejected, do NOT retry on any other model — just report the failure"`
+       • "fallback to grok only" → `"if the chosen model fails or is content-policy-rejected, retry only on grok; never use any other model"`
+       • "fallback to gemini then grok" → `"if the chosen model fails or is content-policy-rejected, retry on google, then on grok"`
+     The script passes it to the worker as a **separate instruction line** — **never** put it in `argline`/the
+     prompt (it would get drawn into the image).
    Remember this call's **flag set** (models, `-reprompt`, `-preview`, `-size`, `-ratio`) for later "same
    params" follow-ups.
 4. **Launch a background dynamic Workflow** to run the cells — this skill **authorizes the Workflow tool**.
