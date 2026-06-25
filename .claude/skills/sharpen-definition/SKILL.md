@@ -59,7 +59,7 @@ contents, so opening them just burns tokens. Likewise don't read `lab/docs/`, `l
    cell array>, parallels: <N or omit> } })` — **pass the path as-is; do NOT open/read the script** (it's
    complete). Pass `cells` as a real JSON array; include `parallels` **only if** `-parallels=N` was given.
    The bundled script chops the cells into groups of ≤`max_images_per_groups` and runs them through a
-   pool of ≤(`parallels` or `max_parallels_agents`) sub-agents on `model: sonnet` at `effort: low` (the
+   pool of ≤(`parallels` or `max_parallels_agents`) sub-agents on `model: sonnet` at `effort: xhigh` (the
    job is mechanical — no vision); each reads `agent.md` and runs the pipeline on **each image in its
    group sequentially**, then reports. The Workflow runs in the **background** and returns immediately:
    **one Workflow per `/sharpen-definition` request**, so you stay free to chain.
