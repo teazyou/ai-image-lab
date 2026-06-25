@@ -5,12 +5,16 @@ export const meta = {
 }
 
 // Launched by the /api skill (SKILL.md), once per /api request, in the background.
-// args: [{ argline: string, label?: string, skipFallback?: string[] }, ...]
+// args: [{ argline: string, label?: string, skipFallback?: string[], fallbackRule?: string }, ...]
 //   One cell per (image × selected model).
 //   `argline` — a single-cell /api argument string: <one model flag> <option flags> <one image PATH> <prompt>
 //   `skipFallback` — the OTHER models selected for this same image (selected set minus this cell's own model).
 //                    Those already have their own cells, so this worker must not fall back onto them (avoids a
 //                    duplicate). Fallback order is google ↔ openai then grok last; see agent.md.
+//   `fallbackRule` — optional free-text override of agent.md's default fallback order for THIS cell only
+//                    (e.g. "if openai fails or is content-policy-rejected, retry on google, then on grok").
+//                    Passed to the worker as its own instruction line — NEVER concatenated into the prompt,
+//                    so it can't leak into the image the model draws.
 // args normally arrives as a real array, but some launch paths deliver it as a JSON string —
 // accept both so the fan-out is robust to how the orchestrator passed it.
 let cells = []
@@ -26,11 +30,14 @@ log('fanning out ' + cells.length + ' cell(s) on Sonnet/high')
 const results = await parallel(cells.map((c, i) => () => {
   const skip = Array.isArray(c.skipFallback) ? c.skipFallback : []
   const noFb = skip.length ? '\nDo not fall back to these models for this image: ' + skip.join(', ') + '.' : ''
+  const fbRule = (typeof c.fallbackRule === 'string' && c.fallbackRule.trim())
+    ? '\nFallback exceptional rule (OVERRIDES agent.md\'s default fallback order for this image): ' + c.fallbackRule.trim()
+    : ''
   const prompt =
     'Read the worker spec at `.claude/skills/api/agent.md` and follow it EXACTLY to process this `/api` ' +
     'argument string:\n' + c.argline + '\n' +
     'You handle exactly this ONE model on this ONE image. Working dir is the repo root; resolve paths ' +
-    'relative to it. Execute every step yourself.' + noFb + '\n' +
+    'relative to it. Execute every step yourself.' + noFb + fbRule + '\n' +
     'Report only your final result, once you are done.'
   return agent(prompt, {
     model: 'sonnet',
