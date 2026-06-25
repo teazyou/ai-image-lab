@@ -23,9 +23,9 @@ For each path in your group, in order:
 
 - **Exactly one generation in flight at a time.** Issue the command for the next image **only after the
   previous one has fully finished**. **Never** put more than one sharpen command in a single step,
-  **never** use `&` / background them, **never** run them in parallel. Running more than one Real-ESRGAN
-  at once is exactly what splitting the work into separate parallel workers exists to prevent — it
-  exhausts the machine's RAM. One image → wait → next image.
+  **never** use `&` / background them, **never** run them in parallel. Each Real-ESRGAN run uses **~8 GB
+  RAM**, so two in flight inside one worker would blow the memory budget — running one at a time is the
+  whole reason the work is split this way. One image → wait → next image.
 - Each invocation Real-ESRGAN 4×-upscales on MPS (~8s for a 1080p input), downscales to 1080p with
   Lanczos, applies a light unsharp, writes `outputs/<stem>_1080p-sharp.png`, and cleans its own
   `.cache/` scratch. It never modifies the input in place. **The script is the entire job** for that
