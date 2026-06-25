@@ -35,7 +35,7 @@ Keep your own output to one terse line per action. Never view any pixels. **Do N
    - **Prompt** = the tokens after the input (or **ALL** positionals if the input came from an attachment).
      Must be non-empty → else ask; don't spawn yet.
 3. **Build the cell list — one cell per (image × selected model).** Total cells = **images × models** (1
-   model × 5 images = 5; 2 models × 5 images = 10). Each cell is an object `{ argline, label, noFallback }`:
+   model × 5 images = 5; 2 models × 5 images = 10). Each cell is an object `{ argline, label, skipFallback, fallbackRule? }`:
    - `argline` — a single-cell `/api` argument string: `<that ONE model flag> <-reprompt/-preview/-size/-ratio
      as given> <that ONE image PATH> <prompt>`.
    - `label` — `"<model>·<image-stem>"` (shown in the progress display).
@@ -43,6 +43,11 @@ Keep your own output to one terse line per action. Never view any pixels. **Do N
      own model). Those already have their own cells, so the worker must not fall back onto them (avoids a
      duplicate). E.g. `-google -openai` on one image → the google cell's `skipFallback` is `["openai"]`, the
      openai cell's is `["google"]`. Usually `[]` (only one model selected).
+   - `fallbackRule` — **omit unless** the request states a custom fallback chain (e.g. "fallback to gemini then
+     grok if needed"). Then set it to that chain as plain text (e.g. `"if openai fails or is content-policy-
+     rejected, retry on google, then on grok"`); it OVERRIDES agent.md's default order for that cell. The script
+     passes it to the worker as a separate instruction line — **never** put it in `argline`/the prompt (it would
+     get drawn into the image).
    Remember this call's **flag set** (models, `-reprompt`, `-preview`, `-size`, `-ratio`) for later "same
    params" follow-ups.
 4. **Launch a background dynamic Workflow** to run the cells — this skill **authorizes the Workflow tool**.
@@ -51,7 +56,8 @@ Keep your own output to one terse line per action. Never view any pixels. **Do N
    fans out **one sub-agent per cell on `model: sonnet` at `effort: high`** (set
    in the script — Sonnet/high is plenty for this gen/edit + resize work); each sub-agent reads `agent.md`,
    processes its `argline`, and — when the cell's `skipFallback` is non-empty — is told `Do not fall back to
-   these models for this image: <list>.` The Workflow runs in the **background** and returns immediately: **one Workflow per
+   these models for this image: <list>.`, plus (when set) the cell's `fallbackRule` as a `Fallback exceptional
+   rule:` line. The Workflow runs in the **background** and returns immediately: **one Workflow per
    `/api` request**, so you stay free to chain.
 5. **Acknowledge in one line**, e.g. `▶ launched workflow — 10 workers ({google,openai} × 5 images): "Make the background black"`.
    Write nothing else.
