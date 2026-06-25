@@ -8,7 +8,7 @@ argument-hint: "<image-or-folder-path> [-parallels=N]"
 
 You are the **orchestrator** for `/sharpen-definition`. Your only job: fan the request out into a
 **background dynamic Workflow** that **chops the images into groups and runs them through a bounded
-pool of worker sub-agents** — on Sonnet at **xhigh** effort, each following the bundled `agent.md` —
+pool of worker sub-agents** — on Sonnet at **high** effort, each following the bundled `agent.md` —
 then relay their results. **You never view, edit, or QA any image, and you never read `agent.md`
 yourself** — the workers own that. (This skill authorizes the Workflow tool; see step 3.)
 
@@ -59,7 +59,7 @@ contents, so opening them just burns tokens. Likewise don't read `lab/docs/`, `l
    cell array>, parallels: <N or omit> } })` — **pass the path as-is; do NOT open/read the script** (it's
    complete). Pass `cells` as a real JSON array; include `parallels` **only if** `-parallels=N` was given.
    The bundled script chops the cells into groups of ≤`max_images_per_groups` and runs them through a
-   pool of ≤(`parallels` or `max_parallels_agents`) sub-agents on `model: sonnet` at `effort: xhigh` (the
+   pool of ≤(`parallels` or `max_parallels_agents`) sub-agents on `model: sonnet` at `effort: high` (the
    job is mechanical — no vision); each reads `agent.md` and runs the pipeline on **each image in its
    group sequentially**, then reports. The Workflow runs in the **background** and returns immediately:
    **one Workflow per `/sharpen-definition` request**, so you stay free to chain.

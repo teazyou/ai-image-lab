@@ -1,7 +1,7 @@
 export const meta = {
   name: 'sharpen-definition-fanout',
   description: 'set 1080p + boost definition — chop images into groups of ≤max_images_per_groups, run them through a pool of ≤max_parallels_agents sequential workers',
-  phases: [{ title: 'Sharpen', detail: 'pool of ≤max_parallels_agents workers, each its group one image at a time, on Sonnet/xhigh' }],
+  phases: [{ title: 'Sharpen', detail: 'pool of ≤max_parallels_agents workers, each its group one image at a time, on Sonnet/high' }],
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ log(cells.length + ' image(s) → ' + groups.length + ' group(s) of ≤' + group
     (parallelsOverride ? ', -parallels=' + parallelsOverride : '') + '; ~8 GB RAM each, ~' +
     (poolSize * 8) + ' GB peak)')
 
-// One sub-agent per group, pinned to model: sonnet / effort: xhigh — purely mechanical (run the
+// One sub-agent per group, pinned to model: sonnet / effort: high — purely mechanical (run the
 // sibling script; no vision, no QA). Each worker processes its group strictly one image at a time.
 function runGroup(group, gi) {
   const paths = group.map((c) => c.argline).join('\n')
@@ -82,7 +82,7 @@ function runGroup(group, gi) {
     'aggregated result (one line per image), once every image in your group is done.'
   return agent(prompt, {
     model: 'sonnet',
-    effort: 'xhigh',
+    effort: 'high',
     agentType: 'claude',
     label: 'group ' + (gi + 1) + '/' + groups.length + ' (' + group.length + ' img)',
     phase: 'Sharpen',

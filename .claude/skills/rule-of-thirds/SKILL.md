@@ -1,6 +1,6 @@
 ---
 name: rule-of-thirds
-description: Shift a subject off-center so it looks into the open space (rule-of-thirds / lead-room look). Fans out one background worker per image — each a Sonnet/xhigh vision sub-agent that decides left|right from the subject's facing, then shifts it that % of the image width. Local-only (ImageMagick).
+description: Shift a subject off-center so it looks into the open space (rule-of-thirds / lead-room look). Fans out one background worker per image — each a Sonnet/high vision sub-agent that decides left|right from the subject's facing, then shifts it that % of the image width. Local-only (ImageMagick).
 argument-hint: "[-20|-30] <image-or-folder-path>"
 ---
 
@@ -8,7 +8,7 @@ argument-hint: "[-20|-30] <image-or-folder-path>"
 
 You are the **orchestrator** for `/rule-of-thirds`. Your only job: fan the request out into a
 **background dynamic Workflow** that spawns **one worker sub-agent per input image** — on Sonnet at
-**xhigh** effort, each following the bundled `agent.md` — then relay their results. Each worker does the
+**high** effort, each following the bundled `agent.md` — then relay their results. Each worker does the
 vision (which way the subject faces → which way to shift), the mechanical shift, and the QA itself.
 **You never view, shift, or QA any image, and you never read `agent.md` yourself** — the workers own
 that. (This skill authorizes the Workflow tool; see step 3.)
@@ -36,7 +36,7 @@ contents, so opening them just burns tokens. Likewise don't read `lab/docs/`, `l
 3. **Launch a background dynamic Workflow** — this skill **authorizes the Workflow tool**. Call
    `Workflow({ scriptPath: ".claude/skills/rule-of-thirds/fanout.workflow.js", args: <the cell list as a
    real JSON array> })` — **pass the path as-is; do NOT open/read the script** (it's complete). The
-   bundled script fans out **one sub-agent per image on `model: sonnet` at `effort: xhigh`** (vision to
+   bundled script fans out **one sub-agent per image on `model: sonnet` at `effort: high`** (vision to
    read the facing, then the mechanical shift); each reads `agent.md`, processes its `argline`, and
    reports. The Workflow runs in the **background** and returns immediately: **one Workflow per
    `/rule-of-thirds` request**, so you stay free to chain.

@@ -1,7 +1,7 @@
 export const meta = {
   name: 'api-fanout',
-  description: 'fal.ai gen/edit — one Sonnet/xhigh worker per (image × model) cell',
-  phases: [{ title: 'Generate', detail: 'one worker per image × model, on Sonnet/xhigh' }],
+  description: 'fal.ai gen/edit — one Sonnet/high worker per (image × model) cell',
+  phases: [{ title: 'Generate', detail: 'one worker per image × model, on Sonnet/high' }],
 }
 
 // Launched by the /api skill (SKILL.md), once per /api request, in the background.
@@ -23,9 +23,9 @@ else if (typeof args === 'string') { try { const p = JSON.parse(args); if (Array
 if (cells.length === 0) return { error: 'no cells in args', argsType: typeof args }
 
 phase('Generate')
-log('fanning out ' + cells.length + ' cell(s) on Sonnet/xhigh')
+log('fanning out ' + cells.length + ' cell(s) on Sonnet/high')
 
-// Each cell → one worker sub-agent, pinned to model: sonnet at effort: xhigh (the whole point of the
+// Each cell → one worker sub-agent, pinned to model: sonnet at effort: high (the whole point of the
 // workflow: the plain Agent tool can't set effort, agent() can). The worker reads agent.md and does the job.
 const results = await parallel(cells.map((c, i) => () => {
   const skip = Array.isArray(c.skipFallback) ? c.skipFallback : []
@@ -44,7 +44,7 @@ const results = await parallel(cells.map((c, i) => () => {
     'Report only your final result, once you are done.'
   return agent(prompt, {
     model: 'sonnet',
-    effort: 'xhigh',
+    effort: 'high',
     agentType: 'claude',
     label: c.label || ('cell ' + (i + 1)),
     phase: 'Generate',

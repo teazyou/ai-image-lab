@@ -1,7 +1,7 @@
 export const meta = {
   name: 'rule-of-thirds-fanout',
-  description: 'rule-of-thirds off-center shift — one Sonnet/xhigh vision worker per image',
-  phases: [{ title: 'Shift', detail: 'one worker per image, on Sonnet/xhigh' }],
+  description: 'rule-of-thirds off-center shift — one Sonnet/high vision worker per image',
+  phases: [{ title: 'Shift', detail: 'one worker per image, on Sonnet/high' }],
 }
 
 // Launched by the /rule-of-thirds skill (SKILL.md), once per request, in the background.
@@ -15,9 +15,9 @@ else if (typeof args === 'string') { try { const p = JSON.parse(args); if (Array
 if (cells.length === 0) return { error: 'no cells in args', argsType: typeof args }
 
 phase('Shift')
-log('fanning out ' + cells.length + ' image(s) on Sonnet/xhigh')
+log('fanning out ' + cells.length + ' image(s) on Sonnet/high')
 
-// Each cell → one worker sub-agent, pinned to model: sonnet at effort: xhigh (the whole point of the
+// Each cell → one worker sub-agent, pinned to model: sonnet at effort: high (the whole point of the
 // workflow: the plain Agent tool can't set effort, agent() can). The worker reads agent.md, uses vision
 // to decide the facing direction, runs the mechanical shift, QAs, and reports.
 const results = await parallel(cells.map((c, i) => () => {
@@ -32,7 +32,7 @@ const results = await parallel(cells.map((c, i) => () => {
     'Report only your final result, once you are done.'
   return agent(prompt, {
     model: 'sonnet',
-    effort: 'xhigh',
+    effort: 'high',
     agentType: 'claude',
     label: c.label || ('image ' + (i + 1)),
     phase: 'Shift',
