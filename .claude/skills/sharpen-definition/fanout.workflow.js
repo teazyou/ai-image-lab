@@ -19,7 +19,7 @@ export const meta = {
 //   context window doesn't get bloated. Images are chopped into groups of this size;
 //   number of groups = ceil(total images / max_images_per_groups).
 const max_parallels_agents = 2
-const max_images_per_groups = 10
+const max_images_per_groups = 12
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Launched by the /sharpen-definition skill (SKILL.md), once per request, in the background.
