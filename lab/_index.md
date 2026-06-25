@@ -10,6 +10,8 @@ One line per path (written from the repo root). **Rules and how-to live only in
 - `.claude/skills/api/agent.md` — `/api` worker spec for ONE (model×image) cell: parse args → fal gen/edit (one of Grok/Google/OpenAI) → normalize to exact size+ratio → report once; self-falls back to grok if google/openai reject on content policy (unless told not to for that image). Self-contained (reads no docs)
 - `.claude/skills/api/fanout.workflow.js` — `/api` dynamic-Workflow script: fans out one sub-agent per (image×model) cell on `model: sonnet`/`effort: high`, each reading `agent.md`; adds the no-fallback line for cells where grok is also selected. Cells passed in via Workflow `args`
 - `.claude/commands/api-v1.md` — legacy `/api-v1`: the pre-skill single-shot version of `/api` (no orchestrator/background/chaining). Kept for reference; superseded by the `api` skill
+- `.claude/skills/rule-of-thirds/SKILL.md` — `/rule-of-thirds` skill: per image (or whole folder) decide left|right from the subject's facing — shift so it looks INTO the open space (lead room: face left→shift right) — then move it P% of width (default 20; `-30` opt). Vision/QA in main session; mechanical shift via sibling script. Local-only
+- `.claude/skills/rule-of-thirds/rule_of_thirds_shift.sh` — the shift: move subject by P% of width toward a given dir on a solid-bg image; auto-detects bg color (top-left px), clamps so the subject never clips
 - `README.md` — human-facing project intro
 - `.env` — secrets (git-ignored); holds `FAL_KEY` for fal.ai. Template: `.env.example` (tracked)
 - `.env.example` — tracked template for `.env`
